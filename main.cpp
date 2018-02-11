@@ -3,10 +3,10 @@
 #include <fstream>
 #include <sstream>
 
-#include "rayito.h"
+#include "core.h"
 
 
-using namespace Rayito;
+using namespace KT;
 
 
 // A few debug print helpers for Color and Vector, in case we need them.
@@ -106,8 +106,8 @@ int main(int argc, char **argv)
     RectangleLight areaLight(Point(-2.5f, 2.0f, -2.5f),
                              Vector(5.0f, 0.0f, 0.0f),
                              Vector(0.0f, 0.0f, 5.0f),
-                             Color(1.0f, 0.5f, 1.0f),
-                             3.0f);
+                             Color(1.0f, 1.0f, 1.0f),
+                             1.0f);
     masterSet.addShape(&areaLight);
     
     // Add another area light below it, darker, that will make a shadow too.
@@ -157,12 +157,8 @@ int main(int argc, char **argv)
                 float xu = (x + rng.nextFloat()) / float(kWidth - 1);
                 
                 // Find where this pixel sample hits in the scene
-                Ray ray = makeCameraRay(45.0f,
-                                        Point(0.0f, 5.0f, 15.0f),
-                                        Point(0.0f, 0.0f, 0.0f),
-                                        Point(0.0f, 1.0f, 0.0f),
-                                        xu,
-                                        yu);
+                Ray ray = makeCameraRay(45.0f, Point(0.0f, 5.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
+
                 Intersection intersection(ray);
                 if (masterSet.intersect(intersection))
                 {
@@ -180,12 +176,9 @@ int main(int argc, char **argv)
                         Point lightPoint;
                         Vector lightNormal;
                         Light *pLightShape = dynamic_cast<Light*>(*iter);
-                        pLightShape->sampleSurface(rng.nextFloat(),
-                                                   rng.nextFloat(),
-                                                   position,
-                                                   lightPoint,
-                                                   lightNormal);
+                        pLightShape->sampleSurface(rng.nextFloat(), rng.nextFloat(), position, lightPoint, lightNormal);
                         
+
                         // Fire a shadow ray to make sure we can actually see
                         // that light position
                         Vector toLight = lightPoint - position;

@@ -1,11 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Very simple ray tracing example
+//  simple ray tracing renderer data core
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-#ifndef __RAYITO_H__
-#define __RAYITO_H__
+#pragma once
 
 
 #include <cmath>
@@ -19,7 +17,7 @@
 #endif
 
 
-namespace Rayito
+namespace KT
 {
 
 
@@ -315,28 +313,19 @@ struct Ray
     float m_tMax;
     
     // Some sane defaults
-    Ray()
-        : m_origin(),
-          m_direction(0.0f, 0.0f, 1.0f),
-          m_tMax(kRayTMax)
+    Ray(): m_origin(), m_direction(0.0f, 0.0f, 1.0f), m_tMax(kRayTMax)
     {
-        
+
     }
     
-    Ray(const Ray& r)
-        : m_origin(r.m_origin),
-          m_direction(r.m_direction),
-          m_tMax(r.m_tMax)
+    Ray(const Ray& r): m_origin(r.m_origin), m_direction(r.m_direction), m_tMax(r.m_tMax)
     {
-        
+
     }
     
-    Ray(const Point& origin, const Vector& direction, float tMax = kRayTMax)
-        : m_origin(origin),
-          m_direction(direction),
-          m_tMax(tMax)
+    Ray(const Point& origin, const Vector& direction, float tMax = kRayTMax): m_origin(origin), m_direction(direction), m_tMax(tMax)
     {
-        
+
     }
     
     Ray& operator =(const Ray& r)
@@ -454,9 +443,7 @@ public:
     virtual bool intersect(Intersection& intersection)
     {
         bool intersectedAny = false;
-        for (std::list<Shape*>::iterator iter = m_shapes.begin();
-             iter != m_shapes.end();
-             ++iter)
+        for (std::list<Shape*>::iterator iter = m_shapes.begin(); iter != m_shapes.end(); ++iter)
         {
             Shape *pShape = *iter;
             bool intersected = pShape->intersect(intersection);
@@ -520,9 +507,9 @@ public:
     {
         
     }
-    
+
     virtual ~RectangleLight() { }
-    
+
     virtual bool intersect(Intersection& intersection)
     {
         // This is much like a plane intersection, except we also range check it
@@ -653,11 +640,11 @@ public:
         intersection.m_emitted = Color();
         intersection.m_color = m_color;
         
-        // Hack bullseye pattern to get some variation
-        if (m_bullseye && std::fmod((intersection.position() - m_position).length() * 0.25f, 1.0f) > 0.5f)
-        {
-            intersection.m_color *= 0.2f;
-        }
+        // // Hack bullseye pattern to get some variation
+        // if (m_bullseye && std::fmod((intersection.position() - m_position).length() * 0.25f, 1.0f) > 0.5f)
+        // {
+        //     intersection.m_color *= 0.2f;
+        // }
         
         return true;
     }
@@ -670,7 +657,4 @@ protected:
 };
 
 
-} // namespace Rayito
-
-
-#endif // __RAYITO_H__
+} // namespace KT

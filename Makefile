@@ -1,12 +1,12 @@
+all: simple-render
 
-all: rayito
+simple-render: main.o
+	g++ -o simple-render main.o
 
-rayito: main.o
-	g++ -o rayito main.o
-
-main.o: main.cpp rayito.h
+main.o: main.cpp core.h
 	g++ -c main.cpp -o main.o -O3 -Wall
-
+run:
+	./simple-render
+	xdg-open ./out.ppm
 clean:
-	rm -f main.o rayito out.ppm out.pfm
-
+	rm -f main.o simple-render out.ppm out.pfm
