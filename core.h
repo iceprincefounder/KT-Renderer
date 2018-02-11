@@ -523,8 +523,7 @@ public:
             return false;
         }
         
-        float t = (dot(m_position, normal) - dot(intersection.m_ray.m_origin, normal)) /
-                  dot(intersection.m_ray.m_direction, normal);
+        float t = (dot(m_position, normal) - dot(intersection.m_ray.m_origin, normal)) / dot(intersection.m_ray.m_direction, normal);
         
         // Make sure t is not behind the ray, and is closer than the current
         // closest intersection.
@@ -543,8 +542,8 @@ public:
         Point worldPoint = intersection.m_ray.calculate(t);
         Point worldRelativePoint = worldPoint - m_position;
         Point localPoint = Point(dot(worldRelativePoint, side1Norm),
-                                 dot(worldRelativePoint, side2Norm),
-                                 0.0f);
+                                 dot(worldRelativePoint, side2Norm), 0.0f);
+
         
         // Do the actual range check
         if (localPoint.m_x < 0.0f || localPoint.m_x > side1Length ||
@@ -640,11 +639,11 @@ public:
         intersection.m_emitted = Color();
         intersection.m_color = m_color;
         
-        // // Hack bullseye pattern to get some variation
-        // if (m_bullseye && std::fmod((intersection.position() - m_position).length() * 0.25f, 1.0f) > 0.5f)
-        // {
-        //     intersection.m_color *= 0.2f;
-        // }
+        // Hack bullseye pattern to get some variation
+        if (m_bullseye && std::fmod((intersection.position() - m_position).length() * 0.25f, 1.0f) > 0.5f)
+        {
+            intersection.m_color *= 0.2f;
+        }
         
         return true;
     }

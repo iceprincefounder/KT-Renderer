@@ -96,18 +96,12 @@ int main(int argc, char **argv)
     ShapeSet masterSet;
     
     // Put a ground plane in (with bullseye texture!)
-    Plane plane(Point(0.0f, -2.0f, 0.0f),
-                Vector(0.0f, 1.0f, 0.0f),
-                Color(1.0f, 1.0f, 1.0f),
-                true);
+    Plane plane(Point(0.0f, -2.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(1.0f, 1.0f, 1.0f), false);
     masterSet.addShape(&plane);
     
     // Add an area light
-    RectangleLight areaLight(Point(-2.5f, 2.0f, -2.5f),
-                             Vector(5.0f, 0.0f, 0.0f),
-                             Vector(0.0f, 0.0f, 5.0f),
-                             Color(1.0f, 1.0f, 1.0f),
-                             1.0f);
+    RectangleLight areaLight(Point(-2.5f, 2.0f, -2.5f), Vector(5.0f, 0.0f, 0.0f), Vector(0.0f, 0.0f, 5.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
+    
     masterSet.addShape(&areaLight);
     
     // Add another area light below it, darker, that will make a shadow too.
@@ -144,9 +138,13 @@ int main(int argc, char **argv)
     // For each row...
     for (size_t y = 0; y < kHeight; ++y)
     {
+        // float yu = 1.0f - (float(y) / float(kHeight - 1));
+        
         // For each pixel across the row...
         for (size_t x = 0; x < kWidth; ++x)
         {
+            // float xu = float(x) / float(kWidth - 1);
+            
             // For each sample in the pixel...
             Color pixelColor(0.0f, 0.0f, 0.0f);
             for (size_t si = 0; si < kNumPixelSamples; ++si)
