@@ -1,296 +1,18 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-//  simple ray tracing renderer data core
-//
-////////////////////////////////////////////////////////////////////////////////
-#pragma once
-
+#ifndef __KTCORE_H__
+#define __KTCORE_H__
 
 #include <cmath>
 #include <list>
 #include <algorithm>
 
+#include "ktColor.h"
+#include "ktVector.h"
 
-#ifndef M_PI
-    // For some reason, MSVC doesn't define this when <cmath> is included
-    #define M_PI 3.14159265358979
-#endif
 
+using namespace KT;
 
 namespace KT
 {
-
-
-//
-// RGB color class
-//
-// Operators supported:
-//     color = color
-//     color + color, color += color
-//     color - color, color -= color
-//     color * color, color *= color, float * color, color * float, color *= float
-//     color / color, color /= color, color / float
-//
-
-struct Color
-{
-    float m_r, m_g, m_b;
-    
-    Color()                          : m_r(0.0f), m_g(0.0f), m_b(0.0f)    { }
-    Color(const Color& c)            : m_r(c.m_r), m_g(c.m_g), m_b(c.m_b) { }
-    Color(float r, float g, float b) : m_r(r), m_g(g), m_b(b)             { }
-    explicit Color(float f)          : m_r(f), m_g(f), m_b(f)             { }
-    
-    
-    void clamp(float min = 0.0f, float max = 1.0f)
-    {
-        m_r = std::max(min, std::min(max, m_r));
-        m_g = std::max(min, std::min(max, m_g));
-        m_b = std::max(min, std::min(max, m_b));
-    }
-    
-    
-    Color& operator =(const Color& c)
-    {
-        m_r = c.m_r;
-        m_g = c.m_g;
-        m_b = c.m_b;
-        return *this;
-    }
-    
-    Color& operator +=(const Color& c)
-    {
-        m_r += c.m_r;
-        m_g += c.m_g;
-        m_b += c.m_b;
-        return *this;
-    }
-    
-    Color& operator -=(const Color& c)
-    {
-        m_r -= c.m_r;
-        m_g -= c.m_g;
-        m_b -= c.m_b;
-        return *this;
-    }
-    
-    Color& operator *=(const Color& c)
-    {
-        m_r *= c.m_r;
-        m_g *= c.m_g;
-        m_b *= c.m_b;
-        return *this;
-    }
-    
-    Color& operator /=(const Color& c)
-    {
-        m_r /= c.m_r;
-        m_g /= c.m_g;
-        m_b /= c.m_b;
-        return *this;
-    }
-    
-    Color& operator *=(float f)
-    {
-        m_r *= f;
-        m_g *= f;
-        m_b *= f;
-        return *this;
-    }
-    
-    Color& operator /=(float f)
-    {
-        m_r /= f;
-        m_g /= f;
-        m_b /= f;
-        return *this;
-    }
-};
-
-
-inline Color operator +(const Color& c1, const Color& c2)
-{
-    return Color(c1.m_r + c2.m_r,
-                 c1.m_g + c2.m_g,
-                 c1.m_b + c2.m_b);
-}
-
-
-inline Color operator -(const Color& c1, const Color& c2)
-{
-    return Color(c1.m_r - c2.m_r,
-                 c1.m_g - c2.m_g,
-                 c1.m_b - c2.m_b);
-}
-
-
-inline Color operator *(const Color& c1, const Color& c2)
-{
-    return Color(c1.m_r * c2.m_r,
-                 c1.m_g * c2.m_g,
-                 c1.m_b * c2.m_b);
-}
-
-
-inline Color operator /(const Color& c1, const Color& c2)
-{
-    return Color(c1.m_r / c2.m_r,
-                 c1.m_g / c2.m_g,
-                 c1.m_b / c2.m_b);
-}
-
-
-inline Color operator *(const Color& c, float f)
-{
-    return Color(f * c.m_r,
-                 f * c.m_g,
-                 f * c.m_b);
-}
-
-
-inline Color operator *(float f, const Color& c)
-{
-    return Color(f * c.m_r,
-                 f * c.m_g,
-                 f * c.m_b);
-}
-
-
-inline Color operator /(const Color& c, float f)
-{
-    return Color(c.m_r / f,
-                 c.m_g / f,
-                 c.m_b / f);
-}
-
-
-//
-// 3D vector class (and associated operations)
-//
-// Operators supported:
-//     vector = vector
-//     vector + vector, vector += vector
-//     vector - vector, vector -= vector
-//     vector * float, vector *= float, float * vector
-//     vector / float, vector /= float
-//
-
-struct Vector
-{
-    float m_x, m_y, m_z;
-    
-    Vector()                          : m_x(0.0f), m_y(0.0f), m_z(0.0f)    { }
-    Vector(const Vector& v)           : m_x(v.m_x), m_y(v.m_y), m_z(v.m_z) { }
-    Vector(float x, float y, float z) : m_x(x), m_y(y), m_z(z)             { }
-    explicit Vector(float f)          : m_x(f), m_y(f), m_z(f)             { }
-    
-    
-    float length2() const { return m_x * m_x + m_y * m_y + m_z * m_z; }
-    float length()  const { return std::sqrt(length2()); }
-    
-    // Returns old length from before normalization (ignore the return value if you don't need it)
-    float  normalize()        { float len = length(); *this /= len; return len; }
-    // Return a vector in this same direction, but normalized
-    Vector normalized() const { Vector r(*this); r.normalize(); return r; }
-    
-    
-    Vector& operator =(const Vector& v)
-    {
-        m_x = v.m_x;
-        m_y = v.m_y;
-        m_z = v.m_z;
-        return *this;
-    }
-    
-    Vector& operator +=(const Vector& v)
-    {
-        m_x += v.m_x;
-        m_y += v.m_y;
-        m_z += v.m_z;
-        return *this;
-    }
-    
-    Vector& operator -=(const Vector& v)
-    {
-        m_x -= v.m_x;
-        m_y -= v.m_y;
-        m_z -= v.m_z;
-        return *this;
-    }
-    
-    Vector& operator *=(float f)
-    {
-        m_x *= f;
-        m_y *= f;
-        m_z *= f;
-        return *this;
-    }
-    
-    Vector& operator /=(float f)
-    {
-        m_x /= f;
-        m_y /= f;
-        m_z /= f;
-        return *this;
-    }
-};
-
-
-inline Vector operator +(const Vector& v1, const Vector& v2)
-{
-    return Vector(v1.m_x + v2.m_x,
-                  v1.m_y + v2.m_y,
-                  v1.m_z + v2.m_z);
-}
-
-
-inline Vector operator -(const Vector& v1, const Vector& v2)
-{
-    return Vector(v1.m_x - v2.m_x,
-                  v1.m_y - v2.m_y,
-                  v1.m_z - v2.m_z);
-}
-
-
-inline Vector operator *(const Vector& v, float f)
-{
-    return Vector(f * v.m_x,
-                  f * v.m_y,
-                  f * v.m_z);
-}
-
-
-inline Vector operator *(float f, const Vector& v)
-{
-    return Vector(f * v.m_x,
-                  f * v.m_y,
-                  f * v.m_z);
-}
-
-
-// dot(v1, v2) = length(v1) * length(v2) * cos(angle between v1, v2)
-inline float dot(const Vector& v1, const Vector& v2)
-{
-    // In cartesian coordinates, it simplifies to this simple calculation:
-    return v1.m_x * v2.m_x + v1.m_y * v2.m_y + v1.m_z * v2.m_z;
-}
-
-
-// cross(v1, v2) = length(v1) * length(v2) * sin(angle between v1, v2);
-// result is perpendicular to both v1, v2.
-inline Vector cross(const Vector& v1, const Vector& v2)
-{
-    // In cartesian coordinates, it simplifies down to this calculation:
-    return Vector(v1.m_y * v2.m_z - v1.m_z * v2.m_y,
-                  v1.m_z * v2.m_x - v1.m_x * v2.m_z,
-                  v1.m_x * v2.m_y - v1.m_y * v2.m_x);
-}
-
-
-// Oh, by the way, a point can be thought of as just a vector, but where you
-// refrain from doing dot/cross/normalize operations on it.
-typedef Vector Point;
-
 
 //
 // Ray (directed line segment)
@@ -336,7 +58,11 @@ struct Ray
         return *this;
     }
     
-    Point calculate(float t) const { return m_origin + t * m_direction; }
+    // when intersected,get the hit point position.
+    Point calculate(float t) const 
+    { 
+        return m_origin + t * m_direction; 
+    }
 };
 
 
@@ -344,13 +70,13 @@ struct Ray
 // Intersection (results from casting a ray)
 //
 
-class Shape;
+class Object;
 
 struct Intersection
 {
     Ray m_ray;
     float m_t;
-    Shape *m_pShape;
+    Object *m_pObject;
     Color m_color;
     Color m_emitted;
     Vector m_normal;
@@ -359,7 +85,7 @@ struct Intersection
     Intersection()
         : m_ray(),
           m_t(kRayTMax),
-          m_pShape(NULL),
+          m_pObject(NULL),
           m_color(),
           m_emitted(),
           m_normal()
@@ -370,7 +96,7 @@ struct Intersection
     Intersection(const Intersection& i)
         : m_ray(i.m_ray),
           m_t(i.m_t),
-          m_pShape(i.m_pShape),
+          m_pObject(i.m_pObject),
           m_color(i.m_color),
           m_emitted(i.m_emitted),
           m_normal(i.m_normal)
@@ -381,7 +107,7 @@ struct Intersection
     Intersection(const Ray& ray)
          : m_ray(ray),
            m_t(ray.m_tMax),
-           m_pShape(NULL),
+           m_pObject(NULL),
            m_color(),
            m_emitted(),
            m_normal()
@@ -393,60 +119,56 @@ struct Intersection
     {
         m_ray = i.m_ray;
         m_t = i.m_t;
-        m_pShape = i.m_pShape;
+        m_pObject = i.m_pObject;
         m_color = i.m_color;
         m_emitted = i.m_emitted;
         m_normal = i.m_normal;
         return *this;
     }
     
-    bool intersected() const { return (m_pShape == NULL) ? false : true; }
+    bool intersected() const { return (m_pObject == NULL) ? false : true; }
     
     Point position() const { return m_ray.calculate(m_t); }
 };
 
 
 //
-// Shapes (scene hierarchy)
+// Objects (scene hierarchy)
 //
 
-class Shape
+class Object
 {
 public:
-    virtual ~Shape() { }
+    virtual ~Object() { }
     
     // Subclasses must implement this; this is the meat of ray tracing
     virtual bool intersect(Intersection& intersection) = 0;
     
     // Usually for lights: given two random numbers between 0.0 and 1.0, find a
     // location + surface normal on the surface.  Return false if not a surface.
-    virtual bool sampleSurface(float u1,
-                               float u2,
-                               const Point& referencePosition,
-                               Point& outPosition,
-                               Vector& outNormal)
+    virtual bool sampleSurface(float u1, float u2, const Point& referencePosition, Point& outPosition, Vector& outNormal)
     {
         return false;
     }
     
-    // Find all lights in the scene starting with this shape
-    virtual void findLights(std::list<Shape*>& outLightList) { }
+    // Find all lights in the scene starting with this Object
+    virtual void findLights(std::list<Object*>& outLightList) { }
 };
 
 
-// List of shapes, so you can aggregate a pile of them
-class ShapeSet : public Shape
+// List of Objects, so you can aggregate a pile of them
+class ObjectSet : public Object
 {
 public:
-    virtual ~ShapeSet() { }
+    virtual ~ObjectSet() { }
     
     virtual bool intersect(Intersection& intersection)
     {
         bool intersectedAny = false;
-        for (std::list<Shape*>::iterator iter = m_shapes.begin(); iter != m_shapes.end(); ++iter)
+        for (std::list<Object*>::iterator iter = m_Objects.begin(); iter != m_Objects.end(); ++iter)
         {
-            Shape *pShape = *iter;
-            bool intersected = pShape->intersect(intersection);
+            Object *pObject = *iter;
+            bool intersected = pObject->intersect(intersection);
             if (intersected)
             {
                 intersectedAny = true;
@@ -455,28 +177,26 @@ public:
         return intersectedAny;
     }
     
-    virtual void findLights(std::list<Shape*>& outLightList)
+    virtual void findLights(std::list<Object*>& outLightList)
     {
-        for (std::list<Shape*>::iterator iter = m_shapes.begin();
-             iter != m_shapes.end();
-             ++iter)
+        for (std::list<Object*>::iterator iter = m_Objects.begin(); iter != m_Objects.end(); ++iter)
         {
-            Shape *pShape = *iter;
-            pShape->findLights(outLightList);
+            Object *pObject = *iter;
+            pObject->findLights(outLightList);
         }
     }
     
-    void addShape(Shape *pShape) { m_shapes.push_back(pShape); }
+    void addObject(Object *pObject) { m_Objects.push_back(pObject); }
     
-    void clearShapes() { m_shapes.clear(); }
+    void clearObjects() { m_Objects.clear(); }
     
 protected:
-    std::list<Shape*> m_shapes;
+    std::list<Object*> m_Objects;
 };
 
 
 // Light base class, making it easy to find all the lights in the scene.
-class Light : public Shape
+class Light : public Object
 {
 public:
     Light(const Color& c, float power) : m_color(c), m_power(power) { }
@@ -484,7 +204,10 @@ public:
     virtual ~Light() { }
     
     // This *is* a light, so we put ourself on the list
-    virtual void findLights(std::list<Shape*>& outLightList) { outLightList.push_back(this); }
+    virtual void findLights(std::list<Object*>& outLightList) 
+    { 
+        outLightList.push_back(this); 
+    }
     
     virtual Color emitted() const { return m_color * m_power; }
     
@@ -494,7 +217,7 @@ protected:
 };
 
 
-// Area light with a corner and two sides to define a rectangular/parallelipiped shape
+// Area light with a corner and two sides to define a rectangular/parallelipiped Object
 class RectangleLight : public Light
 {
 public:
@@ -512,61 +235,65 @@ public:
 
     virtual bool intersect(Intersection& intersection)
     {
-        // This is much like a plane intersection, except we also range check it
-        // to make sure it's within the rectangle.  Please see the plane shape
-        // intersection method for a little more info.
+        return false;
+    }
+    // virtual bool intersect(Intersection& intersection)
+    // {
+    //     // This is much like a plane intersection, except we also range check it
+    //     // to make sure it's within the rectangle.  Please see the plane Object
+    //     // intersection method for a little more info.
         
-        Vector normal = cross(m_side1, m_side2).normalized();
-        float nDotD = dot(normal, intersection.m_ray.m_direction);
-        if (nDotD == 0.0f)
-        {
-            return false;
-        }
+    //     Vector normal = cross(m_side1, m_side2).normalized();
+    //     float nDotD = dot(normal, intersection.m_ray.m_direction);
+    //     if (nDotD == 0.0f)
+    //     {
+    //         return false;
+    //     }
         
-        float t = (dot(m_position, normal) - dot(intersection.m_ray.m_origin, normal)) / dot(intersection.m_ray.m_direction, normal);
+    //     float t = (dot(m_position, normal) - dot(intersection.m_ray.m_origin, normal)) / dot(intersection.m_ray.m_direction, normal);
         
-        // Make sure t is not behind the ray, and is closer than the current
-        // closest intersection.
-        if (t >= intersection.m_t || t < kRayTMin)
-        {
-            return false;
-        }
+    //     // Make sure t is not behind the ray, and is closer than the current
+    //     // closest intersection.
+    //     if (t >= intersection.m_t || t < kRayTMin)
+    //     {
+    //         return false;
+    //     }
         
-        // Take the intersection point on the plane and transform it to a local
-        // space where we can really easily check if it's in range or not.
-        Vector side1Norm = m_side1;
-        Vector side2Norm = m_side2;
-        float side1Length = side1Norm.normalize();
-        float side2Length = side2Norm.normalize();
+    //     // Take the intersection point on the plane and transform it to a local
+    //     // space where we can really easily check if it's in range or not.
+    //     Vector side1Norm = m_side1;
+    //     Vector side2Norm = m_side2;
+    //     float side1Length = side1Norm.normalize();
+    //     float side2Length = side2Norm.normalize();
         
-        Point worldPoint = intersection.m_ray.calculate(t);
-        Point worldRelativePoint = worldPoint - m_position;
-        Point localPoint = Point(dot(worldRelativePoint, side1Norm),
-                                 dot(worldRelativePoint, side2Norm), 0.0f);
+    //     Point worldPoint = intersection.m_ray.calculate(t);
+    //     Point worldRelativePoint = worldPoint - m_position;
+    //     Point localPoint = Point(dot(worldRelativePoint, side1Norm),
+    //                              dot(worldRelativePoint, side2Norm), 0.0f);
 
         
-        // Do the actual range check
-        if (localPoint.m_x < 0.0f || localPoint.m_x > side1Length ||
-            localPoint.m_y < 0.0f || localPoint.m_y > side2Length)
-        {
-            return false;
-        }
+    //     // Do the actual range check
+    //     if (localPoint.m_x < 0.0f || localPoint.m_x > side1Length ||
+    //         localPoint.m_y < 0.0f || localPoint.m_y > side2Length)
+    //     {
+    //         return false;
+    //     }
         
-        // This intersection is the closest so far, so record it.
-        intersection.m_t = t;
-        intersection.m_pShape = this;
-        intersection.m_color = Color();
-        intersection.m_emitted = m_color * m_power;
-        intersection.m_normal = normal;
-        // Hit the back side of the light?  We'll count it, so flip the normal
-        // to effectively make a double-sided light.
-        if (dot(intersection.m_normal, intersection.m_ray.m_direction) > 0.0f)
-        {
-            intersection.m_normal *= -1.0f;
-        }
+    //     // This intersection is the closest so far, so record it.
+    //     intersection.m_t = t;
+    //     intersection.m_pObject = this;
+    //     intersection.m_color = Color();
+    //     intersection.m_emitted = m_color * m_power;
+    //     intersection.m_normal = normal;
+    //     // Hit the back side of the light?  We'll count it, so flip the normal
+    //     // to effectively make a double-sided light.
+    //     if (dot(intersection.m_normal, intersection.m_ray.m_direction) > 0.0f)
+    //     {
+    //         intersection.m_normal *= -1.0f;
+    //     }
         
-        return true;
-    }
+    //     return true;
+    // }
     
     // Given two random numbers between 0.0 and 1.0, find a location + surface
     // normal on the surface of the *light*.
@@ -590,7 +317,7 @@ protected:
 
 
 // Infinite-extent plane, with option bullseye texturing to make it interesting.
-class Plane : public Shape
+class Plane : public Object
 {
 public:
     Plane(const Point& position, const Vector& normal, const Color& color, bool bullseye = false)
@@ -621,9 +348,9 @@ public:
         {
             return false;
         }
-        
-        float t = (dot(m_position, m_normal) - dot(intersection.m_ray.m_origin, m_normal)) /
-                  dot(intersection.m_ray.m_direction, m_normal);
+
+        // Assume we have a ray R (or segment S) from P0 to P1, and a plane P through V0 with normal n. 
+        float t = (dot(m_normal,m_position) - dot(m_normal, intersection.m_ray.m_origin)) / dot(m_normal, intersection.m_ray.m_direction);
         
         // Make sure t is not behind the ray, and is closer than the current
         // closest intersection.
@@ -634,11 +361,11 @@ public:
         
         // This intersection is closer, so record it.
         intersection.m_t = t;
-        intersection.m_pShape = this;
+        intersection.m_pObject = this;
         intersection.m_normal = m_normal;
         intersection.m_emitted = Color();
         intersection.m_color = m_color;
-        
+
         // Hack bullseye pattern to get some variation
         if (m_bullseye && std::fmod((intersection.position() - m_position).length() * 0.25f, 1.0f) > 0.5f)
         {
@@ -657,3 +384,5 @@ protected:
 
 
 } // namespace KT
+
+#endif // __KTCORE_H__

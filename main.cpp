@@ -4,7 +4,8 @@
 #include <sstream>
 
 #include "core.h"
-
+#include "pbrt.h"
+#include "ktConstants.h"
 
 using namespace KT;
 
@@ -27,11 +28,11 @@ std::ostream& operator <<(std::ostream& stream, const Vector& v)
 // Marsaglia multiply-with-carry psuedo random number generator.  It's very fast
 // and has good distribution properties.  Has a period of 2^60. See
 // http://groups.google.com/group/sci.crypt/browse_thread/thread/ca8682a4658a124d/
-struct Rng
+struct RNG
 {
     unsigned int m_z, m_w;
     
-    Rng(unsigned int z = 362436069, unsigned int w = 521288629) : m_z(z), m_w(w) { }
+    RNG(unsigned int z = 362436069, unsigned int w = 521288629) : m_z(z), m_w(w) { }
     
     
     // Returns a 'canonical' float from [0,1)
@@ -64,7 +65,7 @@ Ray makeCameraRay(float fieldOfViewInDegrees,
     Vector up = cross(right, forward).normalized();
     
     // Convert to radians, as that is what the math calls expect
-    float tanFov = std::tan(fieldOfViewInDegrees * M_PI / 180.0f);
+    float tanFov = std::tan(fieldOfViewInDegrees * KT_PI / 180.0f);
     
     Ray ray;
 
@@ -93,16 +94,16 @@ const size_t kNumPixelSamples = 64;
 int main(int argc, char **argv)
 {
     // The 'scene'
-    ShapeSet masterSet;
+    ObjectSet masterSet;
     
     // Put a ground plane in (with bullseye texture!)
     Plane plane(Point(0.0f, -2.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(1.0f, 1.0f, 1.0f), false);
-    masterSet.addShape(&plane);
+    masterSet.addObject(&plane);
     
     // Add an area light
     RectangleLight areaLight(Point(-2.5f, 2.0f, -2.5f), Vector(5.0f, 0.0f, 0.0f), Vector(0.0f, 0.0f, 5.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
     
-    masterSet.addShape(&areaLight);
+    masterSet.addObject(&areaLight);
     
     // Add another area light below it, darker, that will make a shadow too.
     RectangleLight smallAreaLight(Point(-2.0f, -1.0f, -2.0f),
@@ -110,14 +111,14 @@ int main(int argc, char **argv)
                                   Vector(0.0f, 0.0f, 4.0f),
                                   Color(1.0f, 1.0f, 0.5f),
                                   0.75f);
-    masterSet.addShape(&smallAreaLight);
+    masterSet.addObject(&smallAreaLight);
     
     // Get light list from the scene
-    std::list<Shape*> lights;
+    std::list<Object*> lights;
     masterSet.findLights(lights);
     
     // Random number generator (for random pixel positions, light positions, etc)
-    Rng rng;
+    RNG rng;
     
     
     // Set up the output file (TODO: the filename should probably be a commandline parameter)
@@ -154,10 +155,11 @@ int main(int argc, char **argv)
                 float yu = 1.0f - ((y + rng.nextFloat()) / float(kHeight - 1));
                 float xu = (x + rng.nextFloat()) / float(kWidth - 1);
                 
-                // Find where this pixel sample hits in the scene
+                // Find where this pixel sample hits in the scene, create a camera ray
                 Ray ray = makeCameraRay(45.0f, Point(0.0f, 5.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
 
                 Intersection intersection(ray);
+                // Test if this camera ray hit aything
                 if (masterSet.intersect(intersection))
                 {
                     // Add in emission at intersection
@@ -165,39 +167,36 @@ int main(int argc, char **argv)
                     
                     // Find out what lights the intersected point can see
                     Point position = intersection.position();
-                    for (std::list<Shape*>::iterator iter = lights.begin();
-                         iter != lights.end();
-                         ++iter)
+                    for (std::list<Object*>::iterator iter = lights.begin(); iter != lights.end(); ++iter)
                     {
                         // Ask the light for a random position/normal we can use
                         // for lighting
                         Point lightPoint;
                         Vector lightNormal;
-                        Light *pLightShape = dynamic_cast<Light*>(*iter);
-                        pLightShape->sampleSurface(rng.nextFloat(), rng.nextFloat(), position, lightPoint, lightNormal);
+                        Light *pLightObject = dynamic_cast<Light*>(*iter);
+                        pLightObject->sampleSurface(rng.nextFloat(), rng.nextFloat(), position, lightPoint, lightNormal);
                         
 
-                        // Fire a shadow ray to make sure we can actually see
-                        // that light position
+                        // Fire a shadow ray to make sure we can actually see that light position
                         Vector toLight = lightPoint - position;
                         float lightDistance = toLight.normalize();
                         Ray shadowRay(position, toLight, lightDistance);
                         Intersection shadowIntersection(shadowRay);
                         bool intersected = masterSet.intersect(shadowIntersection);
                         
-                        if (!intersected || shadowIntersection.m_pShape == pLightShape)
+                        if (!intersected || shadowIntersection.m_pObject == pLightObject)
                         {
                             // The light point is visible, so let's add that
                             // lighting contribution
                             float lightAttenuation = std::max(0.0f, dot(intersection.m_normal, toLight));
-                            pixelColor += intersection.m_color * pLightShape->emitted() * lightAttenuation;
+                            pixelColor += intersection.m_color * pLightObject->emitted() * lightAttenuation;
                         }
                     }
                 }
             }
             // Divide by the number of pixel samples (a box filter, essentially)
             pixelColor /= kNumPixelSamples;
-            
+
 #if WRITE_PFM
             fileStream << pixelColor.m_r << pixelColor.m_g << pixelColor.m_b;
 #else
@@ -219,4 +218,3 @@ int main(int argc, char **argv)
     
     return 0;
 }
-
