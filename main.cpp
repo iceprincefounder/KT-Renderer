@@ -5,87 +5,11 @@
 
 #include "core.h"
 #include "pbrt.h"
-#include "ktConstants.h"
 
 using namespace KT;
 
 
-// A few debug print helpers for Color and Vector, in case we need them.
 
-std::ostream& operator <<(std::ostream& stream, const Color& c)
-{
-    stream << '(' << c.m_r << ", " << c.m_g << ", " << c.m_b << ')';
-    return stream;
-}
-
-std::ostream& operator <<(std::ostream& stream, const Vector& v)
-{
-    stream << '[' << v.m_x << ", " << v.m_y << ", " << v.m_z << ']';
-    return stream;
-}
-
-
-// Marsaglia multiply-with-carry psuedo random number generator.  It's very fast
-// and has good distribution properties.  Has a period of 2^60. See
-// http://groups.google.com/group/sci.crypt/browse_thread/thread/ca8682a4658a124d/
-struct RNG
-{
-    unsigned int m_z, m_w;
-    
-    RNG(unsigned int z = 362436069, unsigned int w = 521288629) : m_z(z), m_w(w) { }
-    
-    
-    // Returns a 'canonical' float from [0,1)
-    float nextFloat()
-    {
-        unsigned int i = nextUInt32();
-        return i * 2.328306e-10f;
-    }
- 
-    // Returns an int with random bits set
-    unsigned int nextUInt32()
-    {
-        m_z = 36969 * (m_z & 65535) + (m_z >> 16);
-        m_w = 18000 * (m_w & 65535) + (m_w >> 16);
-        return (m_z << 16) + m_w;  /* 32-bit result */
-    }
-};
-
-
-// Set up a camera ray given the look-at spec, FOV, and screen position to aim at.
-Ray makeCameraRay(float fieldOfViewInDegrees,
-                  const Point& origin,
-                  const Vector& target,
-                  const Vector& targetUpDirection,
-                  float xScreenPos0To1,
-                  float yScreenPos0To1)
-{
-    Vector forward = (target - origin).normalized();
-    Vector right = cross(forward, targetUpDirection).normalized();
-    Vector up = cross(right, forward).normalized();
-    
-    // Convert to radians, as that is what the math calls expect
-    float tanFov = std::tan(fieldOfViewInDegrees * KT_PI / 180.0f);
-    
-    Ray ray;
-
-    // Set up ray info
-    ray.m_origin = origin;
-    ray.m_direction = forward +
-                      right * ((xScreenPos0To1 - 0.5f) * tanFov) +
-                      up * ((yScreenPos0To1 - 0.5f) * tanFov);
-    ray.m_direction.normalize();
-    
-    return ray;
-}
-
-
-// Turn on PFM writing if you can find a viewer that will read it.  This will
-// output an HDR image.
-//#define WRITE_PFM 1
-
-
-// TODO: these should probably be read in as commandline parameters.
 const size_t kWidth = 512;
 const size_t kHeight = 512;
 const size_t kNumPixelSamples = 64;
@@ -123,17 +47,10 @@ int main(int argc, char **argv)
     
     // Set up the output file (TODO: the filename should probably be a commandline parameter)
     std::ostringstream headerStream;
-#if WRITE_PFM
-    headerStream << "PF\n";
-    headerStream << kWidth << ' ' << kHeight << '\n';
-    headerStream << "-1.0\n";
-    std::ofstream fileStream("out.pfm", std::ios::out | std::ios::binary);
-#else
     headerStream << "P6\n";
     headerStream << kWidth << ' ' << kHeight << '\n';
     headerStream << "255\n";
     std::ofstream fileStream("out.ppm", std::ios::out | std::ios::binary);
-#endif
     fileStream << headerStream.str();
     
     // For each row...
@@ -156,7 +73,7 @@ int main(int argc, char **argv)
                 float xu = (x + rng.nextFloat()) / float(kWidth - 1);
                 
                 // Find where this pixel sample hits in the scene, create a camera ray
-                Ray ray = makeCameraRay(45.0f, Point(0.0f, 5.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
+                Ray ray = createCameraRay(45.0f, Point(0.0f, 5.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
 
                 Intersection intersection(ray);
                 // Test if this camera ray hit aything
@@ -197,9 +114,6 @@ int main(int argc, char **argv)
             // Divide by the number of pixel samples (a box filter, essentially)
             pixelColor /= kNumPixelSamples;
 
-#if WRITE_PFM
-            fileStream << pixelColor.m_r << pixelColor.m_g << pixelColor.m_b;
-#else
             // We're writing LDR pixel values, so clamp to 0..1 range first
             pixelColor.clamp();
             // Get 24-bit pixel sample and write it out
@@ -208,7 +122,6 @@ int main(int argc, char **argv)
             g = static_cast<unsigned char>(pixelColor.m_g * 255.0f);
             b = static_cast<unsigned char>(pixelColor.m_b * 255.0f);
             fileStream << r << g << b;
-#endif
         }
     }
     

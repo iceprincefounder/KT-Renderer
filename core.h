@@ -7,63 +7,13 @@
 
 #include "ktColor.h"
 #include "ktVector.h"
-
+#include "ktRay.h"
 
 using namespace KT;
 
 namespace KT
 {
 
-//
-// Ray (directed line segment)
-//
-
-// Don't ever start a ray exactly where you previously hit; you must offset it
-// a little bit so you don't accidentally 'self-intersect'.
-const float kRayTMin = 0.00001f;
-// Unless otherwise specified, rays are defined to be able to hit anything as
-// far as the computer can see.  You can limit a ray's max if you need to though
-// as is done often when calculating shadows, so you only check the range from
-// the point on the surface to the point on the light.
-const float kRayTMax = 1.0e30f;
-
-
-struct Ray
-{
-    Point m_origin;
-    Vector m_direction;
-    float m_tMax;
-    
-    // Some sane defaults
-    Ray(): m_origin(), m_direction(0.0f, 0.0f, 1.0f), m_tMax(kRayTMax)
-    {
-
-    }
-    
-    Ray(const Ray& r): m_origin(r.m_origin), m_direction(r.m_direction), m_tMax(r.m_tMax)
-    {
-
-    }
-    
-    Ray(const Point& origin, const Vector& direction, float tMax = kRayTMax): m_origin(origin), m_direction(direction), m_tMax(tMax)
-    {
-
-    }
-    
-    Ray& operator =(const Ray& r)
-    {
-        m_origin = r.m_origin;
-        m_direction = r.m_direction;
-        m_tMax = r.m_tMax;
-        return *this;
-    }
-    
-    // when intersected,get the hit point position.
-    Point calculate(float t) const 
-    { 
-        return m_origin + t * m_direction; 
-    }
-};
 
 
 //
@@ -382,6 +332,31 @@ protected:
     bool m_bullseye;
 };
 
+// Marsaglia multiply-with-carry psuedo random number generator.  It's very fast
+// and has good distribution properties.  Has a period of 2^60. See
+// http://groups.google.com/group/sci.crypt/browse_thread/thread/ca8682a4658a124d/
+struct RNG
+{
+    unsigned int m_z, m_w;
+    
+    RNG(unsigned int z = 362436069, unsigned int w = 521288629) : m_z(z), m_w(w) { }
+    
+    
+    // Returns a 'canonical' float from [0,1)
+    float nextFloat()
+    {
+        unsigned int i = nextUInt32();
+        return i * 2.328306e-10f;
+    }
+ 
+    // Returns an int with random bits set
+    unsigned int nextUInt32()
+    {
+        m_z = 36969 * (m_z & 65535) + (m_z >> 16);
+        m_w = 18000 * (m_w & 65535) + (m_w >> 16);
+        return (m_z << 16) + m_w;  /* 32-bit result */
+    }
+};
 
 } // namespace KT
 

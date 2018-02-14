@@ -7,6 +7,6 @@ main.o: main.cpp core.h
 	g++ -c main.cpp -o main.o -O3 -Wall
 run:
 	./simple-render
-	xdg-open ./out.ppm
+	open ./out.ppm
 clean:
 	rm -f main.o simple-render out.ppm out.pfm
