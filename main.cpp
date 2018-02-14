@@ -18,15 +18,15 @@ const size_t kNumPixelSamples = 64;
 int main(int argc, char **argv)
 {
     // The 'scene'
-    ObjectSet masterSet;
+    ObjectSet sceneSet;
     
     InfinitePlane plane(Point(0.0f, -2.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(1.0f, 1.0f, 1.0f));
-    masterSet.addObject(&plane);
+    sceneSet.addObject(&plane);
     
     // Add an area light
     RectangleLight areaLight(Point(-2.5f, 2.0f, -2.5f), Vector(5.0f, 0.0f, 0.0f), Vector(0.0f, 0.0f, 5.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
     
-    masterSet.addObject(&areaLight);
+    sceneSet.addObject(&areaLight);
     
     // Add another area light below it, darker, that will make a shadow too.
     RectangleLight smallAreaLight(Point(-2.0f, -1.0f, -2.0f),
@@ -34,11 +34,11 @@ int main(int argc, char **argv)
                                   Vector(0.0f, 0.0f, 4.0f),
                                   Color(1.0f, 1.0f, 0.5f),
                                   0.75f);
-    masterSet.addObject(&smallAreaLight);
+    sceneSet.addObject(&smallAreaLight);
     
     // Get light list from the scene
     std::list<Object*> lights;
-    masterSet.findLights(lights);
+    sceneSet.findLights(lights);
     
     // Random number generator (for random pixel positions, light positions, etc)
     RNG rng;
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 
                 Intersection hitPoint(ray);
                 // Test if this camera ray hit aything
-                if (masterSet.intersect(hitPoint))
+                if (sceneSet.intersect(hitPoint))
                 {
                     // Add in emission at intersection
                     pixelColor += hitPoint.m_emitted;
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
                         float lightDistance = toLight.normalize();
                         Ray shadowRay(position, toLight, lightDistance);
                         Intersection shadowIntersection(shadowRay);
-                        bool intersected = masterSet.intersect(shadowIntersection);
+                        bool intersected = sceneSet.intersect(shadowIntersection);
                         
                         if (!intersected || shadowIntersection.m_pObject == pLightObject)
                         {
