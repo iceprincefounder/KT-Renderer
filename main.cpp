@@ -20,8 +20,7 @@ int main(int argc, char **argv)
     // The 'scene'
     ObjectSet masterSet;
     
-    // Put a ground plane in (with bullseye texture!)
-    Plane plane(Point(0.0f, -2.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(1.0f, 1.0f, 1.0f), false);
+    InfinitePlane plane(Point(0.0f, -2.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(1.0f, 1.0f, 1.0f));
     masterSet.addObject(&plane);
     
     // Add an area light
@@ -50,7 +49,7 @@ int main(int argc, char **argv)
     headerStream << "P6\n";
     headerStream << kWidth << ' ' << kHeight << '\n';
     headerStream << "255\n";
-    std::ofstream fileStream("out.ppm", std::ios::out | std::ios::binary);
+    std::ofstream fileStream("output.ppm", std::ios::out | std::ios::binary);
     fileStream << headerStream.str();
     
     // For each row...
@@ -67,7 +66,7 @@ int main(int argc, char **argv)
             Color pixelColor(0.0f, 0.0f, 0.0f);
             for (size_t si = 0; si < kNumPixelSamples; ++si)
             {
-                // Calculate a random position within the pixel to hide aliasing.
+                // Calculate a random position within the pixel to hide aliasing,I would usr pbrt functions to re-implanmtat it
                 // PPMs are top-down, and we're bottom up.  Flip pixel row to be in screen space.
                 float yu = 1.0f - ((y + rng.nextFloat()) / float(kHeight - 1));
                 float xu = (x + rng.nextFloat()) / float(kWidth - 1);
@@ -75,19 +74,18 @@ int main(int argc, char **argv)
                 // Find where this pixel sample hits in the scene, create a camera ray
                 Ray ray = createCameraRay(45.0f, Point(0.0f, 5.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
 
-                Intersection intersection(ray);
+                Intersection hitPoint(ray);
                 // Test if this camera ray hit aything
-                if (masterSet.intersect(intersection))
+                if (masterSet.intersect(hitPoint))
                 {
                     // Add in emission at intersection
-                    pixelColor += intersection.m_emitted;
+                    pixelColor += hitPoint.m_emitted;
                     
                     // Find out what lights the intersected point can see
-                    Point position = intersection.position();
+                    Point position = hitPoint.position();
                     for (std::list<Object*>::iterator iter = lights.begin(); iter != lights.end(); ++iter)
                     {
-                        // Ask the light for a random position/normal we can use
-                        // for lighting
+                        // Ask the light for a random position/normal we can use for lighting
                         Point lightPoint;
                         Vector lightNormal;
                         Light *pLightObject = dynamic_cast<Light*>(*iter);
@@ -103,10 +101,9 @@ int main(int argc, char **argv)
                         
                         if (!intersected || shadowIntersection.m_pObject == pLightObject)
                         {
-                            // The light point is visible, so let's add that
-                            // lighting contribution
-                            float lightAttenuation = std::max(0.0f, dot(intersection.m_normal, toLight));
-                            pixelColor += intersection.m_color * pLightObject->emitted() * lightAttenuation;
+                            // The light point is visible, so let's add that lighting contribution
+                            float lightAttenuation = std::max(0.0f, dot(hitPoint.m_normal, toLight));
+                            pixelColor += hitPoint.m_color * pLightObject->emitted() * lightAttenuation;
                         }
                     }
                 }

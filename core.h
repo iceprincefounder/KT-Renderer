@@ -32,9 +32,7 @@ struct Intersection
     Vector m_normal;
     
     
-    Intersection()
-        : m_ray(),
-          m_t(kRayTMax),
+    Intersection(): m_ray(), m_t(kRayTMax),
           m_pObject(NULL),
           m_color(),
           m_emitted(),
@@ -267,31 +265,23 @@ protected:
 
 
 // Infinite-extent plane, with option bullseye texturing to make it interesting.
-class Plane : public Object
+class InfinitePlane : public Object
 {
 public:
-    Plane(const Point& position, const Vector& normal, const Color& color, bool bullseye = false)
+    InfinitePlane(const Point& position, const Vector& normal, const Color& color)
         : m_position(position),
           m_normal(normal.normalized()),
-          m_color(color),
-          m_bullseye(bullseye)
+          m_color(color)
     {
         
     }
     
-    virtual ~Plane() { }
+    virtual ~InfinitePlane() { }
     
     virtual bool intersect(Intersection& intersection)
     {
-        // Plane eqn: ax+by+cz+d=0; another way of writing it is: dot(n, p-p0)=0
-        // where n=normal=(a,b,c), and p=(x,y,z), and p0 is position.  Now, p is
-        // the ray equation (the intersection point is along the ray): p=origin+t*direction
-        // So the plane-ray intersection eqn is dot(n, origin+t*direction-p0)=0.
-        // Distribute, and you get:
-        //     dot(n, origin) + t*dot(n, direction) - dot(n, p0) = 0
-        // Solve for t, and you get:
-        //    t = (dot(n, p0) - dot(n, origin)) / dot(n, direction)
-        
+        // More info,check on wiki reference
+
         // Check if it's even possible to intersect
         float nDotD = dot(m_normal, intersection.m_ray.m_direction);
         if (nDotD >= 0.0f)
@@ -302,8 +292,6 @@ public:
         // Assume we have a ray R (or segment S) from P0 to P1, and a plane P through V0 with normal n. 
         float t = (dot(m_normal,m_position) - dot(m_normal, intersection.m_ray.m_origin)) / dot(m_normal, intersection.m_ray.m_direction);
         
-        // Make sure t is not behind the ray, and is closer than the current
-        // closest intersection.
         if (t >= intersection.m_t || t < kRayTMin)
         {
             return false;
@@ -315,12 +303,6 @@ public:
         intersection.m_normal = m_normal;
         intersection.m_emitted = Color();
         intersection.m_color = m_color;
-
-        // Hack bullseye pattern to get some variation
-        if (m_bullseye && std::fmod((intersection.position() - m_position).length() * 0.25f, 1.0f) > 0.5f)
-        {
-            intersection.m_color *= 0.2f;
-        }
         
         return true;
     }
@@ -329,7 +311,6 @@ protected:
     Point m_position;
     Vector m_normal;
     Color m_color;
-    bool m_bullseye;
 };
 
 // Marsaglia multiply-with-carry psuedo random number generator.  It's very fast
