@@ -21,6 +21,7 @@ namespace KT
 //
 
 class Object;
+class Material;
 
 struct Intersection
 {
