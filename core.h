@@ -164,6 +164,26 @@ protected:
     float m_power;
 };
 
+// Point light
+class PointLight : public Light
+{
+public:
+    PointLight(const Point& pos,
+                   const Color& color,
+                   float power)
+        : Light(color, power), m_position(pos)
+    {
+
+    }
+    virtual ~PointLight() { }
+    virtual bool intersect(Intersection& intersection)
+    {
+        return false;
+    }
+protected:
+    Point m_position;
+
+};
 
 // Area light with a corner and two sides to define a rectangular/parallelipiped Object
 class RectangleLight : public Light
@@ -183,65 +203,61 @@ public:
 
     virtual bool intersect(Intersection& intersection)
     {
-        return false;
-    }
-    // virtual bool intersect(Intersection& intersection)
-    // {
-    //     // This is much like a plane intersection, except we also range check it
-    //     // to make sure it's within the rectangle.  Please see the plane Object
-    //     // intersection method for a little more info.
+        // This is much like a plane intersection, except we also range check it
+        // to make sure it's within the rectangle.  Please see the plane Object
+        // intersection method for a little more info.
         
-    //     Vector normal = cross(m_side1, m_side2).normalized();
-    //     float nDotD = dot(normal, intersection.m_ray.m_direction);
-    //     if (nDotD == 0.0f)
-    //     {
-    //         return false;
-    //     }
+        Vector normal = cross(m_side1, m_side2).normalized();
+        float nDotD = dot(normal, intersection.m_ray.m_direction);
+        if (nDotD == 0.0f)
+        {
+            return false;
+        }
         
-    //     float t = (dot(m_position, normal) - dot(intersection.m_ray.m_origin, normal)) / dot(intersection.m_ray.m_direction, normal);
+        float t = (dot(m_position, normal) - dot(intersection.m_ray.m_origin, normal)) / dot(intersection.m_ray.m_direction, normal);
         
-    //     // Make sure t is not behind the ray, and is closer than the current
-    //     // closest intersection.
-    //     if (t >= intersection.m_t || t < kRayTMin)
-    //     {
-    //         return false;
-    //     }
+        // Make sure t is not behind the ray, and is closer than the current
+        // closest intersection.
+        if (t >= intersection.m_t || t < kRayTMin)
+        {
+            return false;
+        }
         
-    //     // Take the intersection point on the plane and transform it to a local
-    //     // space where we can really easily check if it's in range or not.
-    //     Vector side1Norm = m_side1;
-    //     Vector side2Norm = m_side2;
-    //     float side1Length = side1Norm.normalize();
-    //     float side2Length = side2Norm.normalize();
+        // Take the intersection point on the plane and transform it to a local
+        // space where we can really easily check if it's in range or not.
+        Vector side1Norm = m_side1;
+        Vector side2Norm = m_side2;
+        float side1Length = side1Norm.normalize();
+        float side2Length = side2Norm.normalize();
         
-    //     Point worldPoint = intersection.m_ray.calculate(t);
-    //     Point worldRelativePoint = worldPoint - m_position;
-    //     Point localPoint = Point(dot(worldRelativePoint, side1Norm),
-    //                              dot(worldRelativePoint, side2Norm), 0.0f);
+        Point worldPoint = intersection.m_ray.calculate(t);
+        Point worldRelativePoint = worldPoint - m_position;
+        Point localPoint = Point(dot(worldRelativePoint, side1Norm),
+                                 dot(worldRelativePoint, side2Norm), 0.0f);
 
         
-    //     // Do the actual range check
-    //     if (localPoint.m_x < 0.0f || localPoint.m_x > side1Length ||
-    //         localPoint.m_y < 0.0f || localPoint.m_y > side2Length)
-    //     {
-    //         return false;
-    //     }
+        // Do the actual range check
+        if (localPoint.m_x < 0.0f || localPoint.m_x > side1Length ||
+            localPoint.m_y < 0.0f || localPoint.m_y > side2Length)
+        {
+            return false;
+        }
         
-    //     // This intersection is the closest so far, so record it.
-    //     intersection.m_t = t;
-    //     intersection.m_pObject = this;
-    //     intersection.m_color = Color();
-    //     intersection.m_emitted = m_color * m_power;
-    //     intersection.m_normal = normal;
-    //     // Hit the back side of the light?  We'll count it, so flip the normal
-    //     // to effectively make a double-sided light.
-    //     if (dot(intersection.m_normal, intersection.m_ray.m_direction) > 0.0f)
-    //     {
-    //         intersection.m_normal *= -1.0f;
-    //     }
+        // This intersection is the closest so far, so record it.
+        intersection.m_t = t;
+        intersection.m_pObject = this;
+        intersection.m_color = Color();
+        intersection.m_emitted = m_color * m_power;
+        intersection.m_normal = normal;
+        // Hit the back side of the light?  We'll count it, so flip the normal
+        // to effectively make a double-sided light.
+        if (dot(intersection.m_normal, intersection.m_ray.m_direction) > 0.0f)
+        {
+            intersection.m_normal *= -1.0f;
+        }
         
-    //     return true;
-    // }
+        return true;
+    }
     
     // Given two random numbers between 0.0 and 1.0, find a location + surface
     // normal on the surface of the *light*.

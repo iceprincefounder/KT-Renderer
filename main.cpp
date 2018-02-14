@@ -17,16 +17,21 @@ const size_t kNumPixelSamples = 64;
 
 int main(int argc, char **argv)
 {
-    // The 'scene'
+    // The 'scene',push all the objects in
     ObjectSet sceneSet;
     
     InfinitePlane plane(Point(0.0f, -2.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(1.0f, 1.0f, 1.0f));
     sceneSet.addObject(&plane);
     
+    // Add a point light
+    PointLight pointLight(Point(-2.5f, 2.0f, -2.5f), Color(1.0f, 1.0f, 1.0f), 1.0f);
+
+    sceneSet.addObject(&pointLight);
+
     // Add an area light
     RectangleLight areaLight(Point(-2.5f, 2.0f, -2.5f), Vector(5.0f, 0.0f, 0.0f), Vector(0.0f, 0.0f, 5.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
     
-    sceneSet.addObject(&areaLight);
+    // sceneSet.addObject(&areaLight);
     
     // Add another area light below it, darker, that will make a shadow too.
     RectangleLight smallAreaLight(Point(-2.0f, -1.0f, -2.0f),
@@ -34,7 +39,7 @@ int main(int argc, char **argv)
                                   Vector(0.0f, 0.0f, 4.0f),
                                   Color(1.0f, 1.0f, 0.5f),
                                   0.75f);
-    sceneSet.addObject(&smallAreaLight);
+    // sceneSet.addObject(&smallAreaLight);
     
     // Get light list from the scene
     std::list<Object*> lights;
@@ -122,7 +127,6 @@ int main(int argc, char **argv)
         }
     }
     
-    // Tidy up (probably unnecessary)
     fileStream.flush();
     fileStream.close();
     

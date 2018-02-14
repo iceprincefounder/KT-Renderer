@@ -92,7 +92,7 @@ Ray createCameraRay(float fieldOfViewInDegrees,
     return ray;
 }
 
-  
+
 } //ending namespace KT
 
 #endif // __KTRAY_H__
