@@ -13,153 +13,24 @@ using namespace KT;
 const size_t kWidth = 512;
 const size_t kHeight = 512;
 const size_t kNumPixelSamples = 64;
-
-Color base_tracing(const Ray& ray, ObjectSet& scene, std::list<Object*>& lights, RNG& rng, size_t lightSamplesHint)
-{
-    Color result = Color(0.0f, 0.0f, 0.0f);
-    
-    // Trace the initial ray to see if we hit anything
-    Intersection intersection(ray);
-    if (!scene.intersect(intersection))
-    {
-        // No hit, return black (background)
-        return result;
-    }
-    
-    const size_t numLightSamplesU = lightSamplesHint;
-    const size_t numLightSamplesV = lightSamplesHint;
-    
-    // Add in emission at intersection
-    result += intersection.m_pShader->emittance();
-    
-    // Find out what lights the intersected point can see
-    Point position = intersection.position();
-    for (std::list<Object*>::iterator iter = lights.begin(); iter != lights.end(); ++iter)
-    {
-        // Sample the light (with stratified random sampling to reduce noise)
-        Color lightResult = Color(0.0f, 0.0f, 0.0f);
-        for (size_t lsv = 0; lsv < numLightSamplesV; ++lsv)
-        {
-            for (size_t lsu = 0; lsu < numLightSamplesU; ++lsu)
-            {
-                // Ask the light for a random position/normal we can use for lighting
-                Point lightPoint;
-                Vector lightNormal;
-                Light *pLightShape = dynamic_cast<Light*>(*iter);
-                pLightShape->sampleSurface((lsu + rng.nextFloat()) / float(numLightSamplesU),
-                                           (lsv + rng.nextFloat()) / float(numLightSamplesV),
-                                           position,
-                                           lightPoint,
-                                           lightNormal);
-                
-                // Fire a shadow ray to make sure we can actually see
-                // that light position
-                Vector toLight = lightPoint - position;
-                // float lightDistance = toLight;
-                float lightDistance = toLight.normalize();
-                Ray shadowRay(position, toLight, lightDistance - kRayTMin);
-                Intersection shadowIntersection(shadowRay);
-                bool intersected = scene.intersect(shadowIntersection);
-                
-                if (!intersected || shadowIntersection.m_pObject == pLightShape)
-                {
-                    // The light point is visible, so let's add that
-                    // lighting contribution
-                    Color materialResult = intersection.m_pShader->shade(position,
-                                                        intersection.m_normal,
-                                                        ray.m_direction,
-                                                        toLight);
-                    lightResult += pLightShape->emitted() * intersection.m_color * materialResult;
-                        
-                }
-            }
-        }
-        lightResult /= numLightSamplesU * numLightSamplesV;
-        
-        result += lightResult;
-    }
-    
-    return result;
-}
+// const size_t kNumPixelSamplesU = 4;
+// const size_t kNumPixelSamplesV = 4;
+// const size_t kNumLightSamplesU = 4;
+// const size_t kNumLightSamplesV = 4;
 
 
-Color trace(const Ray& ray, ObjectSet& scene, std::list<Object*>& lights, RNG& rng, size_t lightSamplesHint)
-{
-    Color result = Color(0.0f, 0.0f, 0.0f);
-    
-    // Trace the initial ray to see if we hit anything
-    Intersection intersection(ray);
-    if (!scene.intersect(intersection))
-    {
-        // No hit, return black (background)
-        return result;
-    }
-    
-    const size_t numLightSamplesU = lightSamplesHint;
-    const size_t numLightSamplesV = lightSamplesHint;
-    
-    // Add in emission at intersection
-    result += intersection.m_pShader->emittance();
-    
-    // Find out what lights the intersected point can see
-    Point position = intersection.position();
-    for (std::list<Object*>::iterator iter = lights.begin(); iter != lights.end(); ++iter)
-    {
-        // Sample the light (with stratified random sampling to reduce noise)
-        Color lightResult = Color(0.0f, 0.0f, 0.0f);
-        for (size_t lsv = 0; lsv < numLightSamplesV; ++lsv)
-        {
-            for (size_t lsu = 0; lsu < numLightSamplesU; ++lsu)
-            {
-                // Ask the light for a random position/normal we can use for lighting
-                Point lightPoint;
-                Vector lightNormal;
-                Light *pLightShape = dynamic_cast<Light*>(*iter);
-                pLightShape->sampleSurface((lsu + rng.nextFloat()) / float(numLightSamplesU),
-                                           (lsv + rng.nextFloat()) / float(numLightSamplesV),
-                                           position,
-                                           lightPoint,
-                                           lightNormal);
-                
-                // Fire a shadow ray to make sure we can actually see
-                // that light position
-                Vector toLight = lightPoint - position;
-                // float lightDistance = toLight;
-                float lightDistance = toLight.normalize();
-                Ray shadowRay(position, toLight, lightDistance - kRayTMin);
-                Intersection shadowIntersection(shadowRay);
-                bool intersected = scene.intersect(shadowIntersection);
-                
-                if (!intersected || shadowIntersection.m_pObject == pLightShape)
-                {
-                    // The light point is visible, so let's add that
-                    // lighting contribution
-                    Color materialResult = intersection.m_pShader->shade(position,
-                                                        intersection.m_normal,
-                                                        ray.m_direction,
-                                                        toLight);
-                    lightResult += pLightShape->emitted() * intersection.m_color * materialResult;
-                        
-                }
-            }
-        }
-        lightResult /= numLightSamplesU * numLightSamplesV;
-        
-        result += lightResult;
-    }
-    
-    return result;
-}
 
 
 
 int main(int argc, char **argv)
 {
+    // size_t pixelSamplesHint = 4;
+    // size_t lightSamplesHint = 4;
+
     // The 'scene',push all the objects in
     ObjectSet sceneSet;
-    // Lambert defaultLambert(Color(0.7f, 0.7f, 0.7f));
-
-    InfinitePlane plane(Point(0.0f, -2.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(0.7f, 0.7f, 0.7f));
+    Lambert defaultLambert(Color(0.7f, 0.7f, 0.7f));
+    InfinitePlane plane(Point(0.0f, -2.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(0.7f, 0.7f, 0.7f), &defaultLambert);
     sceneSet.addObject(&plane);
     
     // Add a point light
@@ -197,7 +68,6 @@ int main(int argc, char **argv)
     fileStream << headerStream.str();
 
 
-
     // For each row...
     for (size_t y = 0; y < kHeight; ++y)
     {
@@ -210,6 +80,7 @@ int main(int argc, char **argv)
             
             // For each sample in the pixel...
             Color pixelColor(0.0f, 0.0f, 0.0f);
+
             for (size_t si = 0; si < kNumPixelSamples; ++si)
             {
                 // Calculate a random position within the pixel to hide aliasing,I would usr pbrt functions to re-implanmtat it
@@ -225,8 +96,9 @@ int main(int argc, char **argv)
                 if (sceneSet.intersect(hitPoint))
                 {
                     // Add in emission at intersection
-                    pixelColor += hitPoint.m_color;
-                    
+                    pixelColor += hitPoint.m_emitted;
+
+
                     // Find out what lights the intersected point can see
                     Point position = hitPoint.position();
                     for (std::list<Object*>::iterator iter = lights.begin(); iter != lights.end(); ++iter)

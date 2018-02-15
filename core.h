@@ -8,6 +8,7 @@
 #include "ktColor.h"
 #include "ktVector.h"
 #include "ktRay.h"
+#include "ktTracing.h"
 
 using namespace KT;
 
@@ -30,6 +31,7 @@ struct Intersection
     Object *m_pObject;
     Shader *m_pShader;
     Color m_color;
+    Color m_emitted;
     Vector m_normal;
     
     
@@ -38,7 +40,8 @@ struct Intersection
           m_t(kRayTMax),
           m_pObject(NULL),
           m_pShader(NULL),
-          m_color(1.0f, 1.0f, 1.0f),
+          m_color(),
+          m_emitted(),
           m_normal()
     {
         
@@ -50,6 +53,7 @@ struct Intersection
           m_pObject(i.m_pObject),
           m_pShader(i.m_pShader),
           m_color(i.m_color),
+          m_emitted(i.m_emitted),
           m_normal(i.m_normal)
     {
         
@@ -60,7 +64,8 @@ struct Intersection
            m_t(ray.m_tMax),
            m_pObject(NULL),
            m_pShader(NULL),
-           m_color(1.0f, 1.0f, 1.0f),
+           m_color(),
+           m_emitted(),
            m_normal()
     {
         
@@ -73,6 +78,7 @@ struct Intersection
         m_pObject = i.m_pObject;
         m_pShader = i.m_pShader;
         m_color = i.m_color;
+        m_emitted = i.m_emitted;
         m_normal = i.m_normal;
         return *this;
     }
@@ -114,7 +120,7 @@ public:
                         const Vector& incomingRayDirection,
                         const Vector& lightDirectionNorm)
     {
-        return std::max(0.0f, dot(lightDirectionNorm, normal)) * m_color;
+        return std::max(0.0f, dot(normal, lightDirectionNorm)) * m_color;
     }
     
 protected:
@@ -315,6 +321,7 @@ public:
         intersection.m_t = t;
         intersection.m_pObject = this;
         intersection.m_color = Color();
+        intersection.m_emitted = m_color * m_power;
         intersection.m_normal = normal;
         // Hit the back side of the light?  We'll count it, so flip the normal
         // to effectively make a double-sided light.
@@ -352,10 +359,11 @@ protected:
 class InfinitePlane : public Object
 {
 public:
-    InfinitePlane(const Point& position, const Vector& normal, const Color& color)
+    InfinitePlane(const Point& position, const Vector& normal, Color color, Shader *pShader)
         : m_position(position),
           m_normal(normal.normalized()),
-          m_color(color)
+          m_color(color),
+          m_shader(pShader)
     {
         
     }
@@ -383,10 +391,11 @@ public:
         
         // This intersection is closer, so record it.
         intersection.m_t = t;
-        intersection.m_pObject = this;
         intersection.m_normal = m_normal;
+        intersection.m_pObject = this;
+        intersection.m_pShader = m_shader;
         intersection.m_color = m_color;
-        
+      
         return true;
     }
 
@@ -394,6 +403,7 @@ protected:
     Point m_position;
     Vector m_normal;
     Color m_color;
+    Shader *m_shader;
 };
 
 
@@ -563,6 +573,8 @@ struct RNG
         return (m_z << 16) + m_w;  /* 32-bit result */
     }
 };
+
+
 
 } // namespace KT
 
