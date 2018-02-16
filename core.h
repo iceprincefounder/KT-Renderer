@@ -250,10 +250,19 @@ public:
 
     }
     virtual ~PointLight() { }
+
     virtual bool intersect(Intersection& intersection)
     {
         return false;
     }
+
+    virtual bool sampleSurface(float u1, float u2, const Point& referencePosition, Point& outPosition, Vector& outNormal)
+    {
+        outNormal = Vector(0.5f, 0.5f, 1.0f);
+        outPosition = m_position + m_position*(u1+u2)*0.5;
+        return true;
+    }
+
 protected:
     Point m_position;
 
@@ -395,7 +404,7 @@ public:
         intersection.m_pObject = this;
         intersection.m_pShader = m_shader;
         intersection.m_color = m_color;
-      
+        intersection.m_emitted = Color();
         return true;
     }
 

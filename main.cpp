@@ -30,26 +30,29 @@ int main(int argc, char **argv)
     // The 'scene',push all the objects in
     ObjectSet sceneSet;
     Lambert defaultLambert(Color(0.7f, 0.7f, 0.7f));
-    InfinitePlane plane(Point(0.0f, -2.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(0.7f, 0.7f, 0.7f), &defaultLambert);
+    InfinitePlane plane(Point(0.0f, 0.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(0.7f, 0.7f, 0.7f), &defaultLambert);
     sceneSet.addObject(&plane);
     
-    // Add a point light
-    PointLight pointLight(Point(-2.5f, 2.0f, -2.5f), Color(1.0f, 1.0f, 1.0f), 1.0f);
+    // Add an area light
+    PointLight pointLight(Point(0.0f, 4.0f, 0.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
 
-    // sceneSet.addObject(&pointLight);
+
+    sceneSet.addObject(&pointLight);
 
     // Add an area light
-    RectangleLight areaLight(Point(-2.5f, 2.0f, -2.5f), Vector(5.0f, 0.0f, 0.0f), Vector(0.0f, 0.0f, 5.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
+    RectangleLight areaLight(Point(-2.5f, 4.0f, -2.5f), Vector(5.0f, 0.0f, 0.0f), Vector(0.0f, 0.0f, 5.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
     
-    sceneSet.addObject(&areaLight);
+    // sceneSet.addObject(&areaLight);
     
     // Add another area light below it, darker, that will make a shadow too.
-    RectangleLight smallAreaLight(Point(-2.0f, -1.0f, -2.0f),
+    RectangleLight smallAreaLight(Point(-2.0f, 2.0f, -2.0f),
                                   Vector(4.0f, 0.0f, 0.0f),
                                   Vector(0.0f, 0.0f, 4.0f),
                                   Color(1.0f, 1.0f, 0.5f),
                                   0.75f);
     sceneSet.addObject(&smallAreaLight);
+
+
     
     // Get light list from the scene
     std::list<Object*> lights;
@@ -89,7 +92,7 @@ int main(int argc, char **argv)
                 float xu = (x + rng.nextFloat()) / float(kWidth - 1);
                 
                 // Find where this pixel sample hits in the scene, create a camera ray
-                Ray ray = createCameraRay(45.0f, Point(0.0f, 5.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
+                Ray ray = createCameraRay(45.0f, Point(0.0f, 8.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
 
                 Intersection hitPoint(ray);
                 // Test if this camera ray hit aything
@@ -108,7 +111,7 @@ int main(int argc, char **argv)
                         Vector lightNormal;
                         Light *pLightObject = dynamic_cast<Light*>(*iter);
                         pLightObject->sampleSurface(rng.nextFloat(), rng.nextFloat(), position, lightPoint, lightNormal);
-                        
+
 
                         // Fire a shadow ray to make sure we can actually see that light position
                         Vector toLight = lightPoint - position;
@@ -116,8 +119,9 @@ int main(int argc, char **argv)
                         Ray shadowRay(position, toLight, lightDistance);
                         Intersection shadowIntersection(shadowRay);
                         bool intersected = sceneSet.intersect(shadowIntersection);
-                        
-                        if (!intersected || shadowIntersection.m_pObject == pLightObject)
+                        // if (!intersected || shadowIntersection.m_pObject == pLightObject)                        
+                        if (!intersected)
+                        // if (!intersected)
                         {
                             // The light point is visible, so let's add that lighting contribution
                             float lightAttenuation = std::max(0.0f, dot(hitPoint.m_normal, toLight));
