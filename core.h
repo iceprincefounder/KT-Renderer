@@ -221,7 +221,7 @@ protected:
 class Light : public Object
 {
 public:
-    Light(const Color& c, float power) : m_color(c), m_power(power) { }
+    Light(const Color& c, float power ) : m_color(c), m_power(power), m_shader(c,power) { }
     
     virtual ~Light() { }
     
@@ -236,6 +236,7 @@ public:
 protected:
     Color m_color;
     float m_power;
+    Emitter m_shader;
 };
 
 // Point light
