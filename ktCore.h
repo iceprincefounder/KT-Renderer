@@ -5,16 +5,12 @@
 #include <list>
 #include <algorithm>
 
-#include "ktColor.h"
-#include "ktVector.h"
-#include "ktRay.h"
-#include "ktTracing.h"
+#include "ktDataTypes.h"
 
 using namespace KT;
 
 namespace KT
 {
-
 
 
 //
