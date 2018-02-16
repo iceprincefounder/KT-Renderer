@@ -330,6 +330,8 @@ public:
         // This intersection is the closest so far, so record it.
         intersection.m_t = t;
         intersection.m_pObject = this;
+        // this shader would draw light emison shape
+        intersection.m_pShader = &m_shader;
         intersection.m_color = Color();
         intersection.m_emitted = m_color * m_power;
         intersection.m_normal = normal;

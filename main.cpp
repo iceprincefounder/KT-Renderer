@@ -13,12 +13,51 @@ using namespace KT;
 const size_t kWidth = 512;
 const size_t kHeight = 512;
 const size_t kNumPixelSamples = 64;
-// const size_t kNumPixelSamplesU = 4;
-// const size_t kNumPixelSamplesV = 4;
-// const size_t kNumLightSamplesU = 4;
-// const size_t kNumLightSamplesV = 4;
 
 
+// Color trace(const Ray& ray, ObjectSet& sceneSet, std::list<Object*>& lights, RNG& rng, size_t lightSamplesHint)
+inline Color trace(const Ray& ray, ObjectSet& sceneSet, std::list<Object*>& lights, RNG& rng)
+{
+    Color result = Color();
+    Intersection hitPoint(ray);
+    // Test if this camera ray hit aything
+    if (sceneSet.intersect(hitPoint))
+    {
+        // Add in emission at intersection
+        result += hitPoint.m_pShader->emittance();
+
+
+        // Find out what lights the intersected point can see
+        Point position = hitPoint.position();
+        for (std::list<Object*>::iterator iter = lights.begin(); iter != lights.end(); ++iter)
+        {
+            // Ask the light for a random position/normal we can use for lighting
+            Point lightPoint;
+            Vector lightNormal;
+            Light *pLightObject = dynamic_cast<Light*>(*iter);
+            pLightObject->sampleSurface(rng.nextFloat(), rng.nextFloat(), position, lightPoint, lightNormal);
+
+
+            // Fire a shadow ray to make sure we can actually see that light position
+            Vector toLight = lightPoint - position;
+            float lightDistance = toLight.normalize();
+            Ray shadowRay(position, toLight, lightDistance);
+            Intersection shadowIntersection(shadowRay);
+            bool intersected = sceneSet.intersect(shadowIntersection);
+
+
+            if (!intersected || shadowIntersection.m_pObject == pLightObject)                        
+            {
+                // The light point is visible, so let's add that lighting contribution
+                Color shading = hitPoint.m_pShader->shade(position, hitPoint.m_normal, ray.m_direction, toLight);
+
+                result += hitPoint.m_color * pLightObject->emitted() * shading;
+            }
+
+        } // ending light loop
+    }
+    return result;
+}
 
 
 
@@ -34,10 +73,18 @@ int main(int argc, char **argv)
     sceneSet.addObject(&plane);
     
     // Add an area light
-    PointLight pointLight(Point(0.0f, 4.0f, 0.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
+    PointLight frontLight(Point(2.0f, 2.0f, 2.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
+    PointLight sideLight(Point(-2.0f, 2.0f, 0.0f), Color(1.0f, 1.0f, 1.0f), 0.5f);
+    PointLight backtLight(Point(0.0f, 2.0f, -4.0f), Color(1.0f, 1.0f, 1.0f), 0.5f);
 
 
-    // sceneSet.addObject(&pointLight);
+    sceneSet.addObject(&frontLight);
+    sceneSet.addObject(&sideLight);
+    sceneSet.addObject(&backtLight);
+
+    Sphere sphere(Point(0.0f, 1.5f, 0.0f), 1.5f, &defaultLambert);
+    sceneSet.addObject(&sphere);
+
 
     // Add an area light
     RectangleLight areaLight(Point(-2.5f, 4.0f, -2.5f), Vector(5.0f, 0.0f, 0.0f), Vector(0.0f, 0.0f, 5.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
@@ -50,7 +97,7 @@ int main(int argc, char **argv)
                                   Vector(0.0f, 0.0f, 4.0f),
                                   Color(1.0f, 1.0f, 0.5f),
                                   0.75f);
-    sceneSet.addObject(&smallAreaLight);
+    // sceneSet.addObject(&smallAreaLight);
 
 
     
@@ -93,43 +140,8 @@ int main(int argc, char **argv)
                 
                 // Find where this pixel sample hits in the scene, create a camera ray
                 Ray ray = createCameraRay(45.0f, Point(0.0f, 8.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
+                pixelColor += trace(ray, sceneSet, lights, rng);
 
-                Intersection hitPoint(ray);
-                // Test if this camera ray hit aything
-                if (sceneSet.intersect(hitPoint))
-                {
-                    // Add in emission at intersection
-                    pixelColor += hitPoint.m_emitted;
-
-
-                    // Find out what lights the intersected point can see
-                    Point position = hitPoint.position();
-                    for (std::list<Object*>::iterator iter = lights.begin(); iter != lights.end(); ++iter)
-                    {
-                        // Ask the light for a random position/normal we can use for lighting
-                        Point lightPoint;
-                        Vector lightNormal;
-                        Light *pLightObject = dynamic_cast<Light*>(*iter);
-                        pLightObject->sampleSurface(rng.nextFloat(), rng.nextFloat(), position, lightPoint, lightNormal);
-
-
-                        // Fire a shadow ray to make sure we can actually see that light position
-                        Vector toLight = lightPoint - position;
-                        float lightDistance = toLight.normalize();
-                        Ray shadowRay(position, toLight, lightDistance);
-                        Intersection shadowIntersection(shadowRay);
-                        bool intersected = sceneSet.intersect(shadowIntersection);
-
-                        if (!intersected || shadowIntersection.m_pObject == pLightObject)                        
-                        {
-                            // The light point is visible, so let's add that lighting contribution
-                            float lightAttenuation = std::max(0.0f, dot(hitPoint.m_normal, toLight));
-                            Color shading = hitPoint.m_pShader->shade(position, hitPoint.m_normal, ray.m_direction, toLight);
-
-                            pixelColor += hitPoint.m_color * pLightObject->emitted() * shading;
-                        }
-                    }
-                }
             }
             // Divide by the number of pixel samples (a box filter, essentially)
             pixelColor /= kNumPixelSamples;
