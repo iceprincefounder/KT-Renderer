@@ -85,7 +85,7 @@ int main(int argc, char **argv)
                 
                 // Find where this pixel sample hits in the scene, create a camera ray
                 Ray ray = createCameraRay(45.0f, Point(0.0f, 8.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
-                pixelColor += trace(ray, sceneSet, lights, rng);
+                pixelColor += basic_tracing(ray, sceneSet, lights, rng);
 
             }
             // Divide by the number of pixel samples (a box filter, essentially)

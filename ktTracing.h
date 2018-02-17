@@ -36,7 +36,7 @@ Ray createCameraRay(float fieldOfViewInDegrees,
 }
 
 // Color trace(const Ray& ray, ObjectSet& sceneSet, std::list<Object*>& lights, RNG& rng, size_t lightSamplesHint)
-inline Color basic_trace(const Ray& ray, ObjectSet& sceneSet, std::list<Object*>& lights, RNG& rng)
+inline Color basic_tracing(const Ray& ray, ObjectSet& sceneSet, std::list<Object*>& lights, RNG& rng)
 {
     Color result = Color();
     Intersection hitPoint(ray);

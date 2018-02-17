@@ -123,6 +123,28 @@ protected:
     Color m_color;
 };
 
+// Phong glossy material
+class Phong : public Shader
+{
+public:
+    Phong(const Color& color, float exponent) : m_color(color), m_exponent(exponent) { }
+    
+    virtual ~Phong() { }
+    
+    virtual Color shade(const Point& position,
+                        const Vector& normal,
+                        const Vector& incomingRayDirection,
+                        const Vector& lightDirectionNorm)
+    {
+        Vector halfVec = (lightDirectionNorm - incomingRayDirection).normalized();
+        return std::pow(std::max(0.0f, dot(halfVec, normal)), m_exponent) * m_color;
+    }
+    
+protected:
+    Color m_color;
+    float m_exponent;
+};
+
 
 // Emitter (light) material
 class Emitter : public Shader
@@ -212,6 +234,10 @@ protected:
     std::list<Object*> m_Objects;
 };
 
+
+//
+// Lights (scene hierarchy)
+//
 
 // Light base class, making it easy to find all the lights in the scene.
 class Light : public Object
@@ -362,6 +388,10 @@ protected:
 };
 
 
+
+//
+// meshShapes (scene hierarchy)
+//
 
 // Infinite-extent plane, with option bullseye texturing to make it interesting.
 class InfinitePlane : public Object
@@ -555,10 +585,8 @@ protected:
     }
 };
 
-
-// Marsaglia multiply-with-carry psuedo random number generator.  It's very fast
-// and has good distribution properties.  Has a period of 2^60. See
-// http://groups.google.com/group/sci.crypt/browse_thread/thread/ca8682a4658a124d/
+// genarate multiply-with-carry psuedo random number
+// see http://groups.google.com/group/sci.crypt/browse_thread/thread/ca8682a4658a124d
 struct RNG
 {
     unsigned int m_z, m_w;
