@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     // size_t pixelSamplesHint = 4;
     // size_t lightSamplesHint = 4;
 
-    // The 'scene',push all the objects in
+    // the 'scene',push all the objects in
     ObjectSet sceneSet;
     Lambert defaultLambert(Color(0.7f, 0.7f, 0.7f));
     
@@ -35,6 +35,7 @@ int main(int argc, char **argv)
     Sphere sphere(Point(0.0f, 1.5f, 0.0f), 1.5f, &defaultLambert);
 
 
+    // push objects into a set
     sceneSet.addObject(&plane);
     // sceneSet.addObject(&frontLight);
     // sceneSet.addObject(&sideLight);
@@ -46,15 +47,15 @@ int main(int argc, char **argv)
     // sceneSet.addObject(&smallAreaLight);
 
     
-    // Get light list from the scene
+    // get light list from the scene
     std::list<Object*> lights;
     sceneSet.findLights(lights);
     
-    // Random number generator (for random pixel positions, light positions, etc)
+    // random number generator (for random pixel positions, light positions, etc)
     RNG rng;
     
     
-    // Set up the output file (TODO: the filename should probably be a commandline parameter)
+    // set up the output file (TODO: the filename should probably be a commandline parameter)
     std::ostringstream headerStream;
     headerStream << "P6\n";
     headerStream << kWidth << ' ' << kHeight << '\n';
@@ -63,37 +64,35 @@ int main(int argc, char **argv)
     fileStream << headerStream.str();
 
 
-    // For each row...
+    // for each row...
     for (size_t y = 0; y < kHeight; ++y)
     {
-        // float yu = 1.0f - (float(y) / float(kHeight - 1));
         
-        // For each pixel across the row...
+        // for each pixel across the row...
         for (size_t x = 0; x < kWidth; ++x)
         {
-            // float xu = float(x) / float(kWidth - 1);
             
-            // For each sample in the pixel...
             Color pixelColor(0.0f, 0.0f, 0.0f);
 
+            // for each sample in the pixel...
             for (size_t si = 0; si < kNumPixelSamples; ++si)
             {
-                // Calculate a random position within the pixel to hide aliasing,I would usr pbrt functions to re-implanmtat it
+                // calculate a random position within the pixel to hide aliasing,I would usr pbrt functions to re implement it
                 // PPMs are top-down, and we're bottom up.  Flip pixel row to be in screen space.
                 float yu = 1.0f - ((y + rng.nextFloat()) / float(kHeight - 1));
                 float xu = (x + rng.nextFloat()) / float(kWidth - 1);
                 
-                // Find where this pixel sample hits in the scene, create a camera ray
+                // find out where this pixel sample hits in the scene, create a camera ray
                 Ray ray = createCameraRay(45.0f, Point(0.0f, 8.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
                 pixelColor += basic_tracing(ray, sceneSet, lights, rng);
 
             }
-            // Divide by the number of pixel samples (a box filter, essentially)
+            // divide by the number of pixel samples (a box filter, essentially)
             pixelColor /= kNumPixelSamples;
 
-            // We're writing LDR pixel values, so clamp to 0..1 range first
+            // writing LDR pixel values, so clamp to 0..1 range first
             pixelColor.clamp();
-            // Get 24-bit pixel sample and write it out
+            // get 24-bit pixel sample and write it out
             unsigned char r, g, b;
             r = static_cast<unsigned char>(pixelColor.m_r * 255.0f);
             g = static_cast<unsigned char>(pixelColor.m_g * 255.0f);

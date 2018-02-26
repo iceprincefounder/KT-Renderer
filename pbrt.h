@@ -3,9 +3,7 @@
 
 #include <math.h>
 
-#include "ktColor.h"
-#include "ktVector.h"
-#include "ktConstants.h"
+#include "ktDataTypes.h"
 
 using namespace KT;
 
