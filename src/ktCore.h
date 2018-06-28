@@ -1,8 +1,15 @@
-#ifndef __KTDATATYPES_H__
-#define __KTDATATYPES_H__
+#ifndef __KTCORE_H__
+#define __KTCORE_H__
+
+#include <cmath>
+#include <list>
+#include <algorithm>
+
+// using namespace KT;
 
 namespace KT
 {
+
 
 //
 // Declare data type Color
@@ -306,7 +313,79 @@ struct Ray
     #define KT_PI 3.14159265358979
 #endif
 
-} //ending namespace KT
+//
+// Intersection (results from casting a ray)
+//
+
+class Object;
+class Shader;
+
+struct Intersection
+{
+    Ray m_ray;
+    float m_t;
+    Object *m_pObject;
+    Shader *m_pShader;
+    Color m_color;
+    Color m_emitted;
+    Vector m_normal;
+    
+    
+    Intersection()
+        : m_ray(),
+          m_t(kRayTMax),
+          m_pObject(NULL),
+          m_pShader(NULL),
+          m_color(),
+          m_emitted(),
+          m_normal()
+    {
+        
+    }
+    
+    Intersection(const Intersection& i)
+        : m_ray(i.m_ray),
+          m_t(i.m_t),
+          m_pObject(i.m_pObject),
+          m_pShader(i.m_pShader),
+          m_color(i.m_color),
+          m_emitted(i.m_emitted),
+          m_normal(i.m_normal)
+    {
+        
+    }
+    
+    Intersection(const Ray& ray)
+         : m_ray(ray),
+           m_t(ray.m_tMax),
+           m_pObject(NULL),
+           m_pShader(NULL),
+           m_color(),
+           m_emitted(),
+           m_normal()
+    {
+        
+    }
+    
+    Intersection& operator =(const Intersection& i)
+    {
+        m_ray = i.m_ray;
+        m_t = i.m_t;
+        m_pObject = i.m_pObject;
+        m_pShader = i.m_pShader;
+        m_color = i.m_color;
+        m_emitted = i.m_emitted;
+        m_normal = i.m_normal;
+        return *this;
+    }
+    
+    bool intersected() const { return (m_pObject == NULL) ? false : true; }
+    
+    Point position() const { return m_ray.calculate(m_t); }
+};
 
 
-#endif // __KTDATATYPES_H__
+
+} // namespace KT
+
+#endif // __KTCORE_H__

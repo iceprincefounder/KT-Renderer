@@ -1,12 +1,13 @@
 all: simple-render
 
 simple-render: main.o
-	g++ -o simple-render main.o
+	g++ -o out/simple-render out/main.o
 
-main.o: main.cpp
-	g++ -c main.cpp -o main.o -O3 -Wall
-run:
-	./simple-render
-	open ./output.ppm
+main.o: src/main.cpp
+	g++ -c src/main.cpp -o out/main.o -O3 -Wall
+install:
+	out/simple-render out/output.ppm
+	xdg-open out/output.ppm
+	@# open ./output.ppm # MacOS setting
 clean:
-	rm -f main.o simple-render output.ppm
+	rm -f out/main.o out/simple-render out/output.ppm

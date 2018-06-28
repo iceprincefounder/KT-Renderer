@@ -1,176 +1,11 @@
-#ifndef __KTCORE_H__
-#define __KTCORE_H__
+#include "ktCore.h"
+#include "ktShaders.h"
 
-#include <cmath>
-#include <list>
-#include <algorithm>
-
-#include "ktDataTypes.h"
-
-using namespace KT;
+#ifndef __KTSHAPES_H__
+#define __KTSHAPES_H__
 
 namespace KT
 {
-
-
-//
-// Intersection (results from casting a ray)
-//
-
-class Object;
-class Shader;
-
-struct Intersection
-{
-    Ray m_ray;
-    float m_t;
-    Object *m_pObject;
-    Shader *m_pShader;
-    Color m_color;
-    Color m_emitted;
-    Vector m_normal;
-    
-    
-    Intersection()
-        : m_ray(),
-          m_t(kRayTMax),
-          m_pObject(NULL),
-          m_pShader(NULL),
-          m_color(),
-          m_emitted(),
-          m_normal()
-    {
-        
-    }
-    
-    Intersection(const Intersection& i)
-        : m_ray(i.m_ray),
-          m_t(i.m_t),
-          m_pObject(i.m_pObject),
-          m_pShader(i.m_pShader),
-          m_color(i.m_color),
-          m_emitted(i.m_emitted),
-          m_normal(i.m_normal)
-    {
-        
-    }
-    
-    Intersection(const Ray& ray)
-         : m_ray(ray),
-           m_t(ray.m_tMax),
-           m_pObject(NULL),
-           m_pShader(NULL),
-           m_color(),
-           m_emitted(),
-           m_normal()
-    {
-        
-    }
-    
-    Intersection& operator =(const Intersection& i)
-    {
-        m_ray = i.m_ray;
-        m_t = i.m_t;
-        m_pObject = i.m_pObject;
-        m_pShader = i.m_pShader;
-        m_color = i.m_color;
-        m_emitted = i.m_emitted;
-        m_normal = i.m_normal;
-        return *this;
-    }
-    
-    bool intersected() const { return (m_pObject == NULL) ? false : true; }
-    
-    Point position() const { return m_ray.calculate(m_t); }
-};
-
-
-//
-// Shaders (scene hierarchy)
-//
-
-class Shader
-{
-public:
-    virtual ~Shader() { }
-    
-    // If the material is emitting, override this
-    virtual Color emittance() { return Color(); }
-    
-    virtual Color shade(const Point& position,
-                        const Vector& normal,
-                        const Vector& incomingRayDirection,
-                        const Vector& lightDirection) = 0;
-};
-
-// Lambertian diffuse material
-class Lambert : public Shader
-{
-public:
-    Lambert(const Color& color) : m_color(color) { }
-    
-    virtual ~Lambert() { }
-    
-    virtual Color shade(const Point& position,
-                        const Vector& normal,
-                        const Vector& incomingRayDirection,
-                        const Vector& lightDirectionNorm)
-    {
-        return std::max(0.0f, dot(normal, lightDirectionNorm)) * m_color;
-    }
-    
-protected:
-    Color m_color;
-};
-
-// Phong glossy material
-class Phong : public Shader
-{
-public:
-    Phong(const Color& color, float exponent) : m_color(color), m_exponent(exponent) { }
-    
-    virtual ~Phong() { }
-    
-    virtual Color shade(const Point& position,
-                        const Vector& normal,
-                        const Vector& incomingRayDirection,
-                        const Vector& lightDirectionNorm)
-    {
-        Vector halfVec = (lightDirectionNorm - incomingRayDirection).normalized();
-        return std::pow(std::max(0.0f, dot(halfVec, normal)), m_exponent) * m_color;
-    }
-    
-protected:
-    Color m_color;
-    float m_exponent;
-};
-
-
-// Emitter (light) material
-class Emitter : public Shader
-{
-public:
-    Emitter(const Color& color, float power) : m_color(color), m_power(power) { }
-    
-    virtual ~Emitter() { }
-    
-    virtual Color emittance() { return m_color * m_power; }
-    
-    virtual Color shade(const Point& position,
-                        const Vector& normal,
-                        const Vector& incomingRayDirection,
-                        const Vector& lightDirectionNorm)
-    {
-        // Let the emittance take care of return color
-        return Color();
-    }
-    
-protected:
-    Color m_color;
-    float m_power;
-};
-
-
 
 //
 // Objects (scene hierarchy)
@@ -611,7 +446,7 @@ struct RNG
 };
 
 
+} //ending namespace KT
 
-} // namespace KT
 
-#endif // __KTCORE_H__
+#endif // __KTSHAPES_H__

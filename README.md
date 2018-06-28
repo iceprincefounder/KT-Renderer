@@ -1,3 +1,3 @@
-# simple-render
+# kt-renderer
 
-practise on creating ray-tracing based renderer
+Practise on creating ray-tracing based renderer

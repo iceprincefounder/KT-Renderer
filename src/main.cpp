@@ -3,7 +3,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "ktCore.h"
+#include "ktShapes.h"
+#include "ktShaders.h"
 #include "ktTracing.h"
 
 using namespace KT;
@@ -17,6 +18,14 @@ const size_t kNumPixelSamples = 64;
 
 int main(int argc, char **argv)
 {
+
+    const char *outfile = NULL;
+
+    if (argc == 2 )
+        outfile = argv[1];
+    else
+        outfile = "output.ppm";
+
     // size_t pixelSamplesHint = 4;
     // size_t lightSamplesHint = 4;
 
@@ -36,15 +45,15 @@ int main(int argc, char **argv)
 
 
     // push objects into a set
-    sceneSet.addObject(&plane);
     // sceneSet.addObject(&frontLight);
     // sceneSet.addObject(&sideLight);
     // sceneSet.addObject(&backtLight);
-
-    sceneSet.addObject(&sphere);
-    sceneSet.addObject(&areaLight);
     // sceneSet.addObject(&topLight); 
     // sceneSet.addObject(&smallAreaLight);
+    
+    sceneSet.addObject(&plane);
+    sceneSet.addObject(&sphere);
+    sceneSet.addObject(&areaLight);
 
     
     // get light list from the scene
@@ -60,7 +69,7 @@ int main(int argc, char **argv)
     headerStream << "P6\n";
     headerStream << kWidth << ' ' << kHeight << '\n';
     headerStream << "255\n";
-    std::ofstream fileStream("output.ppm", std::ios::out | std::ios::binary);
+    std::ofstream fileStream(outfile, std::ios::out | std::ios::binary);
     fileStream << headerStream.str();
 
 

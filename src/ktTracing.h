@@ -1,7 +1,7 @@
 #ifndef __KTTRACING_H__
 #define __KTTRACING_H__
 
-#include "ktDataTypes.h"
+#include "ktCore.h"
 
 using namespace KT;
 
