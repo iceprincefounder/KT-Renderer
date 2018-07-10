@@ -1,15 +1,15 @@
-#ifndef __KTTRACING_H__
-#define __KTTRACING_H__
+#ifndef __KTINTEGRATORS_H__
+#define __KTINTEGRATORS_H__
 
 #include "ktCore.h"
-
-using namespace KT;
+#include "ktSamplers.h"
+#include "ktLights.h"
 
 namespace KT
 {
 
 // set up a camera ray given the look-at spec, FOV, and screen position to aim at.
-Ray createCameraRay(float fieldOfViewInDegrees,
+inline Ray createCameraRay(float fieldOfViewInDegrees,
                   const Point& origin,
                   const Vector& target,
                   const Vector& targetUpDirection,
@@ -78,7 +78,6 @@ inline Color basic_tracing(const Ray& ray, ObjectSet& sceneSet, std::list<Object
     return result;
 }
 
-
 } // ending namespace KT
 
-#endif // __KTTRACING_H__
+#endif // __KTINTEGRATORS_H__

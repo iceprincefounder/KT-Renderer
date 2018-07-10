@@ -1,29 +1,10 @@
+#ifndef __KTMATERIALS_H__
+#define __KTMATERIALS_H__
+
 #include "ktCore.h"
-
-
-#ifndef __KTSHADERS_H__
-#define __KTSHADERS_H__
 
 namespace KT
 {
-
-//
-// Shaders (scene hierarchy)
-//
-
-class Shader
-{
-public:
-    virtual ~Shader() { }
-    
-    // If the material is emitting, override this
-    virtual Color emittance() { return Color(); }
-    
-    virtual Color shade(const Point& position,
-                        const Vector& normal,
-                        const Vector& incomingRayDirection,
-                        const Vector& lightDirection) = 0;
-};
 
 // Lambertian diffuse material
 class Lambert : public Shader
@@ -36,11 +17,7 @@ public:
     virtual Color shade(const Point& position,
                         const Vector& normal,
                         const Vector& incomingRayDirection,
-                        const Vector& lightDirectionNorm)
-    {
-        return std::max(0.0f, dot(normal, lightDirectionNorm)) * m_color;
-    }
-    
+                        const Vector& lightDirectionNorm);    
 protected:
     Color m_color;
 };
@@ -56,12 +33,7 @@ public:
     virtual Color shade(const Point& position,
                         const Vector& normal,
                         const Vector& incomingRayDirection,
-                        const Vector& lightDirectionNorm)
-    {
-        Vector halfVec = (lightDirectionNorm - incomingRayDirection).normalized();
-        return std::pow(std::max(0.0f, dot(halfVec, normal)), m_exponent) * m_color;
-    }
-    
+                        const Vector& lightDirectionNorm);    
 protected:
     Color m_color;
     float m_exponent;
@@ -76,17 +48,12 @@ public:
     
     virtual ~Emitter() { }
     
-    virtual Color emittance() { return m_color * m_power; }
+    virtual Color emittance();
     
     virtual Color shade(const Point& position,
                         const Vector& normal,
                         const Vector& incomingRayDirection,
-                        const Vector& lightDirectionNorm)
-    {
-        // Let the emittance take care of return color
-        return Color();
-    }
-    
+                        const Vector& lightDirectionNorm);    
 protected:
     Color m_color;
     float m_power;
@@ -96,4 +63,4 @@ protected:
 } //ending namespace KT
 
 
-#endif // __KTSHADERS_H__
+#endif // __KTMATERIALS_H__

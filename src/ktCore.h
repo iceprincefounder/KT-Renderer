@@ -5,11 +5,8 @@
 #include <list>
 #include <algorithm>
 
-// using namespace KT;
-
 namespace KT
 {
-
 
 //
 // Declare data type Color
@@ -384,7 +381,85 @@ struct Intersection
     Point position() const { return m_ray.calculate(m_t); }
 };
 
+//
+// Objects (scene hierarchy)
+//
 
+class Object
+{
+public:
+    virtual ~Object() { }
+    
+    // Subclasses must implement this; this is the meat of ray tracing
+    virtual bool intersect(Intersection& intersection) = 0;
+    
+    // Usually for lights: given two random numbers between 0.0 and 1.0, find a
+    // location + surface normal on the surface.  Return false if not a surface.
+    virtual bool sampleSurface(float u1, float u2, const Point& referencePosition, Point& outPosition, Vector& outNormal)
+    {
+        return false;
+    }
+    
+    // Find all lights in the scene starting with this Object
+    virtual void findLights(std::list<Object*>& outLightList) { }
+};
+
+
+// List of Objects, so you can aggregate a pile of them
+class ObjectSet : public Object
+{
+public:
+    virtual ~ObjectSet() { }
+    
+    virtual bool intersect(Intersection& intersection)
+    {
+        bool intersectedAny = false;
+        for (std::list<Object*>::iterator iter = m_Objects.begin(); iter != m_Objects.end(); ++iter)
+        {
+            Object *pObject = *iter;
+            bool intersected = pObject->intersect(intersection);
+            if (intersected)
+            {
+                intersectedAny = true;
+            }
+        }
+        return intersectedAny;
+    }
+    
+    virtual void findLights(std::list<Object*>& outLightList)
+    {
+        for (std::list<Object*>::iterator iter = m_Objects.begin(); iter != m_Objects.end(); ++iter)
+        {
+            Object *pObject = *iter;
+            pObject->findLights(outLightList);
+        }
+    }
+    
+    void addObject(Object *pObject) { m_Objects.push_back(pObject); }
+    
+    void clearObjects() { m_Objects.clear(); }
+    
+protected:
+    std::list<Object*> m_Objects;
+};
+
+//
+// Shaders (scene hierarchy)
+//
+
+class Shader
+{
+public:
+    virtual ~Shader() { }
+    
+    // If the material is emitting, override this
+    virtual Color emittance() { return Color(); }
+    
+    virtual Color shade(const Point& position,
+                        const Vector& normal,
+                        const Vector& incomingRayDirection,
+                        const Vector& lightDirection) = 0;
+};
 
 } // namespace KT
 

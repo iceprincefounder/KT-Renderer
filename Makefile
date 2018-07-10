@@ -1,13 +1,36 @@
-all: simple-render
 
-simple-render: main.o
-	g++ -o out/ktRender out/main.o
+LOGFILE=$(LOGPATH)`date +'%H:%M:%S'`
 
-main.o: src/main.cpp
-	g++ -c src/main.cpp -o out/main.o -O3 -Wall
+SRC_DIR := ./src
+OBJ_DIR := ./out
+SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
+
+CXX = g++
+CXXFLAGS = -O3 -Wall
+
+.PHONY: clean default install start
+
+default: kt-render
+
+kt-render: start $(OBJ_FILES)
+	@echo [${LOGFILE}] "--Build $@"
+	@$(CXX) -o ${OBJ_DIR}/ktRender $(OBJ_FILES)
+	@echo [${LOGFILE}] "--Done!"
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@echo [${LOGFILE}] "--Build $< -> $@  "
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+	@echo [${LOGFILE}] "--Done!"
+
 install:
-	out/ktRender out/output.ppm
-	xdg-open out/output.ppm
+	@echo [${LOGFILE}] "--Run the tester..."
+	@${OBJ_DIR}/ktRender ${OBJ_DIR}/output.ppm
+	@# xdg-open out/output.ppm
 	@# open ./output.ppm # MacOS setting
-clean:
-	rm -f out/main.o out/ktRender out/output.ppm
+	@echo [${LOGFILE}] "--Output file:${OBJ_DIR}/output.ppm"
+	@echo [${LOGFILE}] "--Done!"
+
+start: ; @echo [${LOGFILE}] "--Start to comple...!"
+
+clean: ;rm -f $(OBJ_FILES) out/output.ppm

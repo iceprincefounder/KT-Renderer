@@ -4,8 +4,10 @@
 #include <sstream>
 
 #include "ktShapes.h"
-#include "ktShaders.h"
-#include "ktTracing.h"
+#include "ktMaterials.h"
+#include "ktSamplers.h"
+#include "ktLights.h"
+#include "ktIntegrators.h"
 
 using namespace KT;
 
@@ -43,14 +45,6 @@ int main(int argc, char **argv)
     RectangleLight smallAreaLight(Point(-2.0f, 2.0f, -2.0f), Vector(4.0f, 0.0f, 0.0f), Vector(0.0f, 0.0f, 4.0f), Color(1.0f, 1.0f, 0.5f), 0.75f);
     Sphere sphere(Point(0.0f, 1.5f, 0.0f), 1.5f, &defaultLambert);
 
-
-    // push objects into a set
-    // sceneSet.addObject(&frontLight);
-    // sceneSet.addObject(&sideLight);
-    // sceneSet.addObject(&backtLight);
-    // sceneSet.addObject(&topLight); 
-    // sceneSet.addObject(&smallAreaLight);
-    
     sceneSet.addObject(&plane);
     sceneSet.addObject(&sphere);
     sceneSet.addObject(&areaLight);
@@ -86,8 +80,8 @@ int main(int argc, char **argv)
             // for each sample in the pixel...
             for (size_t si = 0; si < kNumPixelSamples; ++si)
             {
-                // calculate a random position within the pixel to hide aliasing,I would usr pbrt functions to re implement it
-                // PPMs are top-down, and we're bottom up.  Flip pixel row to be in screen space.
+                // calculate a random position within the pixel to hide aliasing,I would use pbrt functions to 
+                //implement it PPMs are top-down, and we're bottom up.  Flip pixel row to be in screen space.
                 float yu = 1.0f - ((y + rng.nextFloat()) / float(kHeight - 1));
                 float xu = (x + rng.nextFloat()) / float(kWidth - 1);
                 
