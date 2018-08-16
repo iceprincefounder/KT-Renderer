@@ -495,7 +495,14 @@ struct Intersection
     Vector m_normal;
 };
 
-inline Color path_tracing();
+class SamplerContainer;
+
+Color path_tracing(const Ray& ray,
+                ShapeSet& scene,
+                std::vector<Shape*>& lights,
+                Rng& rng,
+                SamplerContainer& samplers,
+                unsigned int pixelSampleIndex);
 
 } // ending namespace KAI
 

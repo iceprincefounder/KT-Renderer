@@ -52,7 +52,11 @@ class RectangleLight : public Light
 
 };
 
-class PolyMesh : public Object;
+class PolyMesh : public Object
+{
+    
+};
 
 } //ending namespace KAI
+
 #endif // __KTOBJECTS_H__
