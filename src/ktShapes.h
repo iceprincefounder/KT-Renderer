@@ -64,6 +64,3 @@ protected:
 };
 
 } //ending namespace KT
-
-
-#endif // __KTSHAPES_H__

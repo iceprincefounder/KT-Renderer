@@ -62,5 +62,4 @@ protected:
 
 } //ending namespace KT
 
-
 #endif // __KTMATERIALS_H__

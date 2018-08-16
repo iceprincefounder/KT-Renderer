@@ -463,4 +463,40 @@ public:
 
 } // namespace KT
 
+#define Point KT::Point
+#define Color KT::Color
+#define Vector KT::Vector
+
+namespace KAI{
+
+class Object;
+class Shader;
+// at this point, I just deal with material as shader,
+// but actually they are different.
+typedef Material Shader;
+
+const float kRayTMin = 0.0001f;
+const float kRayTMax = 1.0e30f;
+
+struct Ray
+ {
+    Point m_origin;
+    Vector m_direction;
+    float m_tMax;
+ };
+
+struct Intersection
+{
+    Ray m_ray;
+    float m_t;
+    Object *pObject;
+    Material *pMaterial;
+    Color m_color;
+    Vector m_normal;
+};
+
+inline Color path_tracing();
+
+} // ending namespace KAI
+
 #endif // __KTCORE_H__
