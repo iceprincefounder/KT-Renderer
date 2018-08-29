@@ -1,41 +1,12 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <stdio.h>
 
 #include "KCore.h"
 
-// #include <QThread>
-
 
 using namespace KT;
-
-
-// A few debug print helpers, in case we need them.
-
-std::ostream& operator <<(std::ostream& stream, const Color& c)
-{
-    stream << '(' << c.m_r << ", " << c.m_g << ", " << c.m_b << ')';
-    return stream;
-}
-
-std::ostream& operator <<(std::ostream& stream, const Vector& v)
-{
-    stream << '[' << v.m_x << ", " << v.m_y << ", " << v.m_z << ']';
-    return stream;
-}
-
-std::ostream& operator <<(std::ostream& stream, const Quaternion& q)
-{
-    stream << '[' << q.m_w << "; " << q.m_v.m_x << ", " << q.m_v.m_y << ", " << q.m_v.m_z << ']';
-    return stream;
-}
-
-std::ostream& operator <<(std::ostream& stream, const Ray& r)
-{
-    stream << r.m_origin << ":" << r.m_direction << ":[" << kRayTMin << ' ' << r.m_tMax << "]@" << r.m_time;
-    return stream;
-}
-
 
 
 namespace KT
@@ -256,110 +227,145 @@ Color pathTracer(const Ray& ray,
 }
 
 Image* render(ShapeSet& scene,
-                const Camera& cam,
+                const Camera& camera,
                 size_t width,
                 size_t height,
                 unsigned int pixelSamplesHint,
                 unsigned int lightSamplesHint,
                 unsigned int maxRayDepth)
 {
-    return NULL;
-}
-// Image* raytrace(ShapeSet& scene,
-//                 const Camera& cam,
-//                 size_t width,
-//                 size_t height,
-//                 unsigned int pixelSamplesHint,
-//                 unsigned int lightSamplesHint,
-//                 unsigned int maxRayDepth)
-// {
-//     // Get light list from the scene
-//     std::vector<Shape*> lights;
-//     scene.findLights(lights);
-    
-//     scene.prepare();
-    
-//     // Set up the output image
-//     Image *pImage = new Image(width, height);
-    
-//     // Set up render threads; we make as much as 16 chunks of the image that
-//     // can render in parallel.
-//     const size_t kChunkDim = 4;
-    
-//     // Chunk size is the number of pixels per image chunk (we have to take care
-//     // to deal with tiny images)
-//     size_t xChunkSize = width >= kChunkDim ? width / kChunkDim : 1;
-//     size_t yChunkSize = height >= kChunkDim ? height / kChunkDim : 1;
-//     // Chunks are the number of chunks in each dimension we can chop the image
-//     // into (again, taking care to deal with tiny images, and also images that
-//     // don't divide clealy into 4 chunks)
-//     size_t xChunks = width > kChunkDim ? width / xChunkSize : 1;
-//     size_t yChunks = height > kChunkDim ? height / yChunkSize : 1;
-//     if (xChunks * xChunkSize < width) xChunks++;
-//     if (yChunks * yChunkSize < height) yChunks++;
-    
-//     // Set up render threads
-//     size_t numRenderThreads = xChunks * yChunks;
-//     RenderThread **renderThreads = new RenderThread*[numRenderThreads];
-    
-//     // Launch render threads
-//     for (size_t yc = 0; yc < yChunks; ++yc)
-//     {
-//         // Get the row start/end (making sure the last chunk doesn't go off the end)
-//         size_t yStart = yc * yChunkSize;
-//         size_t yEnd = std::min((yc + 1) * yChunkSize, height);
-//         for (size_t xc = 0; xc < xChunks; ++xc)
-//         {
-//             // Get the column start/end (making sure the last chunk doesn't go off the end)
-//             size_t xStart = xc * xChunkSize;
-//             size_t xEnd = std::min((xc + 1) * xChunkSize, width);
-//             // Render the chunk!
-//             renderThreads[yc * xChunks + xc] = new RenderThread(xStart,
-//                                                                 xEnd,
-//                                                                 yStart,
-//                                                                 yEnd,
-//                                                                 pImage,
-//                                                                 scene,
-//                                                                 cam,
-//                                                                 lights,
-//                                                                 pixelSamplesHint,
-//                                                                 lightSamplesHint,
-//                                                                 maxRayDepth);
-//             renderThreads[yc * xChunks + xc]->start();
-//         }
-//     }
-    
-//     // Wait until the render finishes
-//     bool stillRunning;
-//     do
-//     {
-//         // See if any render thread is still going...
-//         stillRunning = false;
-//         for (size_t i = 0; i < numRenderThreads; ++i)
-//         {
-//             if (renderThreads[i]->isRunning())
-//             {
-//                 stillRunning = true;
-//                 break;
-//             }
-//         }
-//         if (stillRunning)
-//         {
-//             // Give up the CPU so the render threads can do their thing
-//             QThread::yieldCurrentThread();
-//         }
-//     } while (stillRunning);
-    
-//     // Clean up render thread objects
-//     for (size_t i = 0; i < numRenderThreads; ++i)
-//     {
-//         delete renderThreads[i];
-//     }
-//     delete[] renderThreads;
-    
-//     // We made a picture!
-//     return pImage;
-// }
+    // Get light list from the scene
+    std::vector<Shape*> lights;
+    scene.findLights(lights);
 
+    scene.prepare();
+    
+    // Set up the output image
+    Image *pImage = new Image(width, height);
+
+
+    // Random number generator (for random pixel positions, light positions, etc)
+    // We seed the generator for this render thread based on something that
+    // doesn't change, but gives us a good variable seed for each thread.
+    Rng rng(static_cast<unsigned int>(((0 << 16) | width) ^ width),
+            static_cast<unsigned int>(((0 << 16) | height) ^ height));
+    
+    // The aspect ratio is used to make the image only get more zoomed in when
+    // the height changes (and not the width)
+    float aspectRatioXToY = float(pImage->width()) / float(pImage->height());
+    
+    SamplerContainer samplers;
+    samplers.m_numLightSamples = lights.empty() ? 0 : lightSamplesHint * lightSamplesHint;
+    samplers.m_maxRayDepth = maxRayDepth;
+    
+    // Set up samplers for each of the ray bounces.  Each bounce will use
+    // the same sampler for all pixel samples in the pixel to reduce noise.
+    for (size_t i = 0; i < maxRayDepth; ++i)
+    {
+        samplers.m_bounceSamplers.push_back(new CorrelatedMultiJitterSampler(pixelSamplesHint,
+                                                                             pixelSamplesHint,
+                                                                             rng,
+                                                                             rng.nextUInt32()));
+        samplers.m_lightSelectionSamplers.push_back(new CorrelatedMultiJitterSampler(pixelSamplesHint * pixelSamplesHint *
+                                                                                     pixelSamplesHint * pixelSamplesHint,
+                                                                                     rng,
+                                                                                     rng.nextUInt32()));
+        samplers.m_lightElementSamplers.push_back(new CorrelatedMultiJitterSampler(pixelSamplesHint * pixelSamplesHint *
+                                                                                   pixelSamplesHint * pixelSamplesHint,
+                                                                                   rng,
+                                                                                   rng.nextUInt32()));
+        samplers.m_lightSamplers.push_back(new CorrelatedMultiJitterSampler(pixelSamplesHint * pixelSamplesHint,
+                                                                            pixelSamplesHint * pixelSamplesHint,
+                                                                            rng,
+                                                                            rng.nextUInt32()));
+        samplers.m_brdfSamplers.push_back(new CorrelatedMultiJitterSampler(pixelSamplesHint * pixelSamplesHint,
+                                                                           pixelSamplesHint * pixelSamplesHint,
+                                                                           rng,
+                                                                           rng.nextUInt32()));
+    }
+    // Set up samplers for each pixel sample
+    samplers.m_timeSampler = new CorrelatedMultiJitterSampler(pixelSamplesHint * pixelSamplesHint, rng, rng.nextUInt32());
+    samplers.m_lensSampler = new CorrelatedMultiJitterSampler(pixelSamplesHint, pixelSamplesHint, rng, rng.nextUInt32());
+    samplers.m_subpixelSampler = new CorrelatedMultiJitterSampler(pixelSamplesHint, pixelSamplesHint, rng, rng.nextUInt32());
+    unsigned int totalPixelSamples = samplers.m_subpixelSampler->total2DSamplesAvailable();
+
+    // For each pixel row...
+    for (size_t y = 0; y < height; ++y)
+    {
+        // For each pixel across the row...
+        for (size_t x = 0; x < width; ++x)
+        {
+            // Accumulate pixel color
+            Color pixelColor(0.0f, 0.0f, 0.0f);
+            // For each sample in the pixel...
+            for (size_t psi = 0; psi < totalPixelSamples; ++psi)
+            {
+                // Calculate a stratified random position within the pixel
+                // to hide aliasing
+                float pu, pv;
+                samplers.m_subpixelSampler->sample2D(psi, pu, pv);
+                float xu = (x + pu) / float(pImage->width());
+                // Flip pixel row to be in screen space (images are top-down)
+                float yu = 1.0f - (y + pv) / float(pImage->height());
+                
+                // Calculate a stratified random variation for depth-of-field
+                float lensU, lensV;
+                samplers.m_lensSampler->sample2D(psi, lensU, lensV);
+                
+                // Grab a time for motion blur
+                float timeU = samplers.m_timeSampler->sample1D(psi);
+                
+                // Find where this pixel sample hits in the scene
+                Ray ray = camera.makeRay((xu - 0.5f) * aspectRatioXToY + 0.5f,
+                                          yu,
+                                          lensU,
+                                          lensV,
+                                          timeU);
+                
+                // Trace a path out, gathering estimated radiance along the path
+                pixelColor += pathTracer(ray,
+                                        scene,
+                                        lights,
+                                        rng,
+                                        samplers,
+                                        psi);
+            }
+            // Divide by the number of pixel samples (a box pixel filter, essentially)
+            pixelColor /= totalPixelSamples;
+            // printf("--result (%i,%i)-(%f,%f,%f)\n", 
+                // (int)x,(int)y,(float)pixelColor.m_r,(float)pixelColor.m_g,(float)pixelColor.m_b);
+            // Store off the computed pixel in a big buffer
+            pImage->pixel(x, y) = pixelColor;
+            
+            // Reset samplers for the next pixel sample
+            for (size_t i = 0; i < maxRayDepth; ++i)
+            {
+                samplers.m_bounceSamplers[i]->refill(rng.nextUInt32());
+                samplers.m_lightSelectionSamplers[i]->refill(rng.nextUInt32());
+                samplers.m_lightElementSamplers[i]->refill(rng.nextUInt32());
+                samplers.m_lightSamplers[i]->refill(rng.nextUInt32());
+                samplers.m_brdfSamplers[i]->refill(rng.nextUInt32());
+            }
+            samplers.m_lensSampler->refill(rng.nextUInt32());
+            samplers.m_timeSampler->refill(rng.nextUInt32());
+            samplers.m_subpixelSampler->refill(rng.nextUInt32());
+        }
+    }
+    
+    // Deallocate all samplers
+    for (size_t i = 0; i < maxRayDepth; ++i)
+    {
+        delete samplers.m_bounceSamplers[i];
+        delete samplers.m_lightSelectionSamplers[i];
+        delete samplers.m_lightElementSamplers[i];
+        delete samplers.m_lightSamplers[i];
+        delete samplers.m_brdfSamplers[i];
+    }
+    delete samplers.m_lensSampler;
+    delete samplers.m_timeSampler;
+    delete samplers.m_subpixelSampler;
+
+    return pImage;
+}
 
 } // namespace KT

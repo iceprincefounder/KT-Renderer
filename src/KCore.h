@@ -85,4 +85,13 @@ Image* raytrace(ShapeSet& scene,
                 unsigned int maxRayDepth);
 
 
+Image* render(ShapeSet& scene,
+                const Camera& camera,
+                size_t width,
+                size_t height,
+                unsigned int pixelSamplesHint,
+                unsigned int lightSamplesHint,
+                unsigned int maxRayDepth);
+
+
 } // namespace KT

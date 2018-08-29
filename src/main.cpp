@@ -1,6 +1,7 @@
 #include <iostream>
 #include "KCore.h"
 #include "KMesh.h"
+#include "KDriver.h"
 
 using namespace KT;
 using namespace std;
@@ -96,22 +97,27 @@ int main(int argc, char *argv[]){
     float shutterOpen = 0.0;
     float shutterClose = 0.0;
 
-    PerspectiveCamera cam( FOV, position, target,
-                          targetUpDirection,focalDistance, lensRadius,
-                          shutterOpen, shutterClose);    
-    // // Ray trace!
-    // Image *pImage = raytrace(masterSet,
-    //                          cam,
-    //                          (size_t)ui->widthSpinBox->value(),
-    //                          (size_t)ui->heightSpinBox->value(),
-    //                          (unsigned int)ui->pixelSamplesSpinBox->value(),
-    //                          (unsigned int)ui->lightSamplesSpinBox->value(),
-    //                          (unsigned int)ui->rayDepthSpinBox->value());
+    PerspectiveCamera camera( FOV, position, target,
+                              targetUpDirection,focalDistance, lensRadius,
+                              shutterOpen, shutterClose);    
+    // Ray trace!
+    size_t widthSpinBox = 150;
+    size_t heightSpinBox = 150;
+    unsigned int pixelSamplesSpinBox = 1;
+    unsigned int lightSamplesSpinBox = 1;
+    unsigned int rayDepthSpinBox = 2;
+
+    cout << "=== KT Renderer start ===" << endl;
+
+    Image *pImage = render(masterSet,
+                             camera,widthSpinBox,heightSpinBox,
+                             pixelSamplesSpinBox,lightSamplesSpinBox,
+                             rayDepthSpinBox);
+    cout << "=== KT Renderer end ===" << endl;
     
-    // displayImage(pImage);
+    // output images
+    ppm_driver(pImage);
     
     // Clean up the scene and render
-    // delete pImage;
-    // delete pOBJMesh;
-    cout << "=== KT Renderer ===" << endl;
+    delete pImage;
 }
