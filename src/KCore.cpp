@@ -37,237 +37,11 @@ std::ostream& operator <<(std::ostream& stream, const Ray& r)
 }
 
 
-namespace
-{
-
-
-// //
-// // RenderThread works on a small chunk of the image
-// //
-// class RenderThread : public QThread
-// {
-// public:
-//     RenderThread(size_t xstart, size_t xend, size_t ystart, size_t yend,
-//                  Image *pImage,
-//                  ShapeSet& masterSet,
-//                  const Camera& cam,
-//                  std::vector<Shape*>& lights,
-//                  unsigned int pixelSamplesHint,
-//                  unsigned int lightSamplesHint,
-//                  unsigned int maxRayDepth)
-//         : m_xstart(xstart), m_xend(xend), m_ystart(ystart), m_yend(yend),
-//           m_pImage(pImage), m_masterSet(masterSet), m_camera(cam), m_lights(lights),
-//           m_pixelSamplesHint(pixelSamplesHint), m_lightSamplesHint(lightSamplesHint),
-//           m_maxRayDepth(maxRayDepth) { }
-    
-// protected:
-//     virtual void run()
-//     {
-//         // Random number generator (for random pixel positions, light positions, etc)
-//         // We seed the generator for this render thread based on something that
-//         // doesn't change, but gives us a good variable seed for each thread.
-//         Rng rng(static_cast<unsigned int>(((m_xstart << 16) | m_xend) ^ m_xstart),
-//                 static_cast<unsigned int>(((m_ystart << 16) | m_yend) ^ m_ystart));
-        
-//         // The aspect ratio is used to make the image only get more zoomed in when
-//         // the height changes (and not the width)
-//         float aspectRatioXToY = float(m_pImage->width()) / float(m_pImage->height());
-        
-//         SamplerContainer samplers;
-//         samplers.m_numLightSamples = m_lights.empty() ? 0 : m_lightSamplesHint * m_lightSamplesHint;
-//         samplers.m_maxRayDepth = m_maxRayDepth;
-        
-//         // Set up samplers for each of the ray bounces.  Each bounce will use
-//         // the same sampler for all pixel samples in the pixel to reduce noise.
-//         for (size_t i = 0; i < m_maxRayDepth; ++i)
-//         {
-//             samplers.m_bounceSamplers.push_back(new CorrelatedMultiJitterSampler(m_pixelSamplesHint,
-//                                                                                  m_pixelSamplesHint,
-//                                                                                  rng,
-//                                                                                  rng.nextUInt32()));
-//             samplers.m_lightSelectionSamplers.push_back(new CorrelatedMultiJitterSampler(m_pixelSamplesHint * m_lightSamplesHint *
-//                                                                                          m_pixelSamplesHint * m_lightSamplesHint,
-//                                                                                          rng,
-//                                                                                          rng.nextUInt32()));
-//             samplers.m_lightElementSamplers.push_back(new CorrelatedMultiJitterSampler(m_pixelSamplesHint * m_lightSamplesHint *
-//                                                                                        m_pixelSamplesHint * m_lightSamplesHint,
-//                                                                                        rng,
-//                                                                                        rng.nextUInt32()));
-//             samplers.m_lightSamplers.push_back(new CorrelatedMultiJitterSampler(m_pixelSamplesHint * m_lightSamplesHint,
-//                                                                                 m_pixelSamplesHint * m_lightSamplesHint,
-//                                                                                 rng,
-//                                                                                 rng.nextUInt32()));
-//             samplers.m_brdfSamplers.push_back(new CorrelatedMultiJitterSampler(m_pixelSamplesHint * m_lightSamplesHint,
-//                                                                                m_pixelSamplesHint * m_lightSamplesHint,
-//                                                                                rng,
-//                                                                                rng.nextUInt32()));
-//         }
-//         // Set up samplers for each pixel sample
-//         samplers.m_timeSampler = new CorrelatedMultiJitterSampler(m_pixelSamplesHint * m_pixelSamplesHint, rng, rng.nextUInt32());
-//         samplers.m_lensSampler = new CorrelatedMultiJitterSampler(m_pixelSamplesHint, m_pixelSamplesHint, rng, rng.nextUInt32());
-//         samplers.m_subpixelSampler = new CorrelatedMultiJitterSampler(m_pixelSamplesHint, m_pixelSamplesHint, rng, rng.nextUInt32());
-//         unsigned int totalPixelSamples = samplers.m_subpixelSampler->total2DSamplesAvailable();
-
-//         // For each pixel row...
-//         for (size_t y = m_ystart; y < m_yend; ++y)
-//         {
-//             // For each pixel across the row...
-//             for (size_t x = m_xstart; x < m_xend; ++x)
-//             {
-//                 // Accumulate pixel color
-//                 Color pixelColor(0.0f, 0.0f, 0.0f);
-//                 // For each sample in the pixel...
-//                 for (size_t psi = 0; psi < totalPixelSamples; ++psi)
-//                 {
-//                     // Calculate a stratified random position within the pixel
-//                     // to hide aliasing
-//                     float pu, pv;
-//                     samplers.m_subpixelSampler->sample2D(psi, pu, pv);
-//                     float xu = (x + pu) / float(m_pImage->width());
-//                     // Flip pixel row to be in screen space (images are top-down)
-//                     float yu = 1.0f - (y + pv) / float(m_pImage->height());
-                    
-//                     // Calculate a stratified random variation for depth-of-field
-//                     float lensU, lensV;
-//                     samplers.m_lensSampler->sample2D(psi, lensU, lensV);
-                    
-//                     // Grab a time for motion blur
-//                     float timeU = samplers.m_timeSampler->sample1D(psi);
-                    
-//                     // Find where this pixel sample hits in the scene
-//                     Ray ray = m_camera.makeRay((xu - 0.5f) * aspectRatioXToY + 0.5f,
-//                                                yu,
-//                                                lensU,
-//                                                lensV,
-//                                                timeU);
-                    
-//                     // Trace a path out, gathering estimated radiance along the path
-//                     pixelColor += pathTrace(ray,
-//                                             m_masterSet,
-//                                             m_lights,
-//                                             rng,
-//                                             samplers,
-//                                             psi);
-//                 }
-//                 // Divide by the number of pixel samples (a box pixel filter, essentially)
-//                 pixelColor /= totalPixelSamples;
-                
-//                 // Store off the computed pixel in a big buffer
-//                 m_pImage->pixel(x, y) = pixelColor;
-                
-//                 // Reset samplers for the next pixel sample
-//                 for (size_t i = 0; i < m_maxRayDepth; ++i)
-//                 {
-//                     samplers.m_bounceSamplers[i]->refill(rng.nextUInt32());
-//                     samplers.m_lightSelectionSamplers[i]->refill(rng.nextUInt32());
-//                     samplers.m_lightElementSamplers[i]->refill(rng.nextUInt32());
-//                     samplers.m_lightSamplers[i]->refill(rng.nextUInt32());
-//                     samplers.m_brdfSamplers[i]->refill(rng.nextUInt32());
-//                 }
-//                 samplers.m_lensSampler->refill(rng.nextUInt32());
-//                 samplers.m_timeSampler->refill(rng.nextUInt32());
-//                 samplers.m_subpixelSampler->refill(rng.nextUInt32());
-//             }
-//         }
-        
-//         // Deallocate all samplers
-//         for (size_t i = 0; i < m_maxRayDepth; ++i)
-//         {
-//             delete samplers.m_bounceSamplers[i];
-//             delete samplers.m_lightSelectionSamplers[i];
-//             delete samplers.m_lightElementSamplers[i];
-//             delete samplers.m_lightSamplers[i];
-//             delete samplers.m_brdfSamplers[i];
-//         }
-//         delete samplers.m_lensSampler;
-//         delete samplers.m_timeSampler;
-//         delete samplers.m_subpixelSampler;
-//     }
-    
-//     size_t m_xstart, m_xend, m_ystart, m_yend;
-//     Image *m_pImage;
-//     ShapeSet& m_masterSet;
-//     const Camera& m_camera;
-//     std::vector<Shape*>& m_lights;
-//     unsigned int m_pixelSamplesHint, m_lightSamplesHint;
-//     unsigned int m_maxRayDepth;
-// };
-
-
-} // namespace
-
 
 namespace KT
 {
 
-
-// Construct a perspective camera, precomputing a few things to ray trace faster
-PerspectiveCamera::PerspectiveCamera(float fieldOfViewInDegrees,
-                                     const Point& origin,
-                                     const Vector& target,
-                                     const Vector& targetUpDirection,
-                                     float focalDistance,
-                                     float lensRadius,
-                                     float shutterOpen,
-                                     float shutterClose)
-    : Camera(shutterOpen, shutterClose),
-      m_origin(origin),
-      m_forward((target - origin).normalized()),
-      m_tanFov(std::tan(fieldOfViewInDegrees * M_PI / 180.0f)),
-      m_focalDistance(focalDistance),
-      m_lensRadius(lensRadius)
-{
-    m_right = cross(m_forward, targetUpDirection);
-    m_up = cross(m_right, m_forward); // no need to normalize, it already is
-}
-
-Ray PerspectiveCamera::makeRay(float xScreen, float yScreen, float lensU, float lensV, float timeU) const
-{
-    // Set up a camera ray given the look-at spec, FOV, and screen position to aim at
-    
-    // Set up ray info
-    Ray ray;
-    ray.m_origin = m_origin;
-    ray.m_direction = m_forward +
-                      m_right * ((xScreen - 0.5f) * m_tanFov) +
-                      m_up * ((yScreen - 0.5f) * m_tanFov);
-    ray.m_direction.normalize();
-    ray.m_time = time(timeU);
-    
-    if (m_lensRadius > 0)
-    {
-        // Modify it for DOF if necessary
-        float horizontalShift = 0.0f, verticalShift = 0.0f;
-        float nearDistance = 0.0f; // TODO: be able to set a custom near distance?
-
-        // Compute shifts on the near plane due to DOF
-        uniformToUniformDisk(lensU, lensV, horizontalShift, verticalShift);
-        horizontalShift *= m_lensRadius;
-        verticalShift *= m_lensRadius;
-
-        // Compute local direction rays for computing focal parameters
-        Vector localRayDirection((xScreen - 0.5f) * m_tanFov,
-                                 (yScreen - 0.5f) * m_tanFov,
-                                 1.0f);
-        localRayDirection.normalize();
-
-        // Compute primary ray focal plane intersection
-        float focusT = (m_focalDistance - nearDistance) / localRayDirection.m_z;
-        Point focusPoint = m_origin + ray.m_direction * focusT;
-
-        // Modify primary ray origin
-        ray.m_origin += m_right * horizontalShift + m_up * verticalShift;
-
-        // Compute primary ray direction
-        ray.m_direction = focusPoint - ray.m_origin;
-        ray.m_direction.normalize();
-    }
-    
-    return ray;
-}
-
-
-Color pathTrace(const Ray& ray,
+Color pathTracer(const Ray& ray,
                 ShapeSet& scene,
                 std::vector<Shape*>& lights,
                 Rng& rng,
@@ -481,7 +255,16 @@ Color pathTrace(const Ray& ray,
     return result;
 }
 
-
+Image* render(ShapeSet& scene,
+                const Camera& cam,
+                size_t width,
+                size_t height,
+                unsigned int pixelSamplesHint,
+                unsigned int lightSamplesHint,
+                unsigned int maxRayDepth)
+{
+    return NULL;
+}
 // Image* raytrace(ShapeSet& scene,
 //                 const Camera& cam,
 //                 size_t width,

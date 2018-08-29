@@ -1,11 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// Very simple ray tracing example
-//
-////////////////////////////////////////////////////////////////////////////////
-
-#ifndef __RACCEL_H__
-#define __RACCEL_H__
+#pragma once
 
 #include <limits>
 #include <algorithm>
@@ -564,6 +557,3 @@ bool Bvh<T>::intersect(Intersection& intersection)
 
 
 } // namespace KT
-
-
-#endif // __RACCEL_H__

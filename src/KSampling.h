@@ -1,11 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// Very simple ray tracing example
-//
-////////////////////////////////////////////////////////////////////////////////
-
-#ifndef __RSAMPLING_H__
-#define __RSAMPLING_H__
+#pragma once
 
 #include <cmath>
 #include <algorithm>
@@ -533,6 +526,3 @@ inline void uniformToBarycentricTriangle(float u1, float u2, float& btu, float& 
 
 
 } // namespace KT
-
-
-#endif // __RSAMPLING_H__

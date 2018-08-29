@@ -86,16 +86,19 @@ int main(int argc, char *argv[]){
     ShapeLight sphereLight(&sphereForLight, Color(1.0f, 1.0f, 0.3f), 100.0f);
     masterSet.addShape(&sphereLight);
     
-    // // Create the camera based on user settings
-    // PerspectiveCamera cam((float)ui->camFovSpinBox->value(),
-    //                       Point(-4.0f, 5.0f, 15.0f),
-    //                       Point(0.0f, 0.0f, 0.0f),
-    //                       Point(0.0f, 1.0f, 0.0f),
-    //                       (float)ui->focalDistanceSpinBox->value(),
-    //                       (float)ui->lensRadiusSpinBox->value(),
-    //                       (float)ui->shutterOpenSpinBox->value(),
-    //                       (float)ui->shutterCloseSpinBox->value());
-    
+    // Create the camera based on user settings
+    float FOV = 45;
+    Point position = Point(-4.0f, 5.0f, 15.0f);
+    Point target = Point(0.0f, 0.0f, 0.0f);
+    Point targetUpDirection = Point(0.0f, 1.0f, 0.0f);
+    float focalDistance = 12.0;
+    float lensRadius = 5.0;
+    float shutterOpen = 0.0;
+    float shutterClose = 0.0;
+
+    PerspectiveCamera cam( FOV, position, target,
+                          targetUpDirection,focalDistance, lensRadius,
+                          shutterOpen, shutterClose);    
     // // Ray trace!
     // Image *pImage = raytrace(masterSet,
     //                          cam,

@@ -1,11 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// Very simple ray tracing example
-//
-////////////////////////////////////////////////////////////////////////////////
-
-#ifndef __RMATH_H__
-#define __RMATH_H__
+#pragma once
 
 #include <cmath>
 #include <algorithm>
@@ -987,6 +980,3 @@ inline Vector transformFromLocalCoordinateSpace(const Vector& v,
 
 
 } // namespace KT
-
-
-#endif // __RMATH_H__

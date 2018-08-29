@@ -1,11 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// Very simple ray tracing example
-//
-////////////////////////////////////////////////////////////////////////////////
-
-#ifndef __RMESH_H__
-#define __RMESH_H__
+#pragma once
 
 #include <list>
 #include <vector>
@@ -385,5 +378,3 @@ Mesh* createFromOBJFile(const char* filename);
 
 } // namespace KT
 
-
-#endif // __RMESH_H__

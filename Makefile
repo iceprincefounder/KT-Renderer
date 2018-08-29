@@ -13,7 +13,7 @@ CXXFLAGS = -O3 -Wall
 
 default: kt-render
 
-kt-render: start $(OBJ_FILES)
+kt-render: clean start $(OBJ_FILES)
 	@echo [${LOGFILE}] "--Build $@"
 	@$(CXX) -o ${OBJ_DIR}/ktRender $(OBJ_FILES)
 	@echo [${LOGFILE}] "--Done!"
@@ -33,4 +33,4 @@ install:
 
 start: ; @echo [${LOGFILE}] "--Start to comple...!"
 
-clean: ;rm -f $(OBJ_FILES) out/output.ppm
+clean: ; @rm -f $(OBJ_FILES) out/output.ppm
