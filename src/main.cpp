@@ -1,111 +1,114 @@
-#include <string>
 #include <iostream>
-#include <fstream>
-#include <sstream>
-
-#include "ktShapes.h"
-#include "ktMaterials.h"
-#include "ktSamplers.h"
-#include "ktLights.h"
-#include "ktIntegrators.h"
+#include "KCore.h"
+#include "KMesh.h"
 
 using namespace KT;
+using namespace std;
 
-
-// render samples
-const size_t kWidth = 512;
-const size_t kHeight = 512;
-const size_t kNumPixelSamples = 64;
-
-
-int main(int argc, char **argv)
-{
-
-    const char *outfile = NULL;
-
-    if (argc == 2 )
-        outfile = argv[1];
-    else
-        outfile = "output.ppm";
-
-    // size_t pixelSamplesHint = 4;
-    // size_t lightSamplesHint = 4;
-
-    // the 'scene',push all the objects in
-    ObjectSet sceneSet;
-    Lambert defaultLambert(Color(0.7f, 0.7f, 0.7f));
+int main(int argc, char *argv[]){
+    // Make a picture...
     
-    // genarate the whole scene
-    InfinitePlane plane(Point(0.0f, 0.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f), Color(0.7f, 0.7f, 0.7f), &defaultLambert);
-    PointLight frontLight(Point(2.0f, 2.0f, 2.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
-    PointLight sideLight(Point(-2.0f, 2.0f, 0.0f), Color(1.0f, 1.0f, 1.0f), 0.5f);
-    PointLight backtLight(Point(0.0f, 2.0f, -4.0f), Color(1.0f, 1.0f, 1.0f), 0.5f);
-    PointLight topLight(Point(0.0f, 4.0f, 0.0f), Color(1.0f, 1.0f, 1.0f), 1.0f);
-    RectangleLight areaLight(Point(-2.5f, 4.0f, -2.5f), Vector(5.0f, 0.0f, 0.0f), Vector(0.0f, 0.0f, 5.0f), Color(1.0f, 1.0f, 1.0f), 2.0f);
-    RectangleLight smallAreaLight(Point(-2.0f, 2.0f, -2.0f), Vector(4.0f, 0.0f, 0.0f), Vector(0.0f, 0.0f, 4.0f), Color(1.0f, 1.0f, 0.5f), 0.75f);
-    Sphere sphere(Point(0.0f, 1.5f, 0.0f), 1.5f, &defaultLambert);
-
-    sceneSet.addObject(&plane);
-    sceneSet.addObject(&sphere);
-    sceneSet.addObject(&areaLight);
-
+    // Available materials
+    DiffuseMaterial blueishLambert(Color(0.6f, 0.6f, 0.9f));
+    DiffuseMaterial purplishLambert(Color(0.8f, 0.3f, 0.7f));
+    DiffuseMaterial reddishLambert(Color(0.8f, 0.3f, 0.1f));
+    GlossyMaterial bluishGlossy(Color(0.5f, 0.3f, 0.8f), 0.3);
+    GlossyMaterial greenishGlossy(Color(0.3f, 0.9f, 0.3f), 0.1f);
+    GlossyMaterial reddishGlossy(Color(0.8f, 0.1f, 0.1f), 0.3f);
+    ReflectionMaterial reflective(Color(0.7f, 0.7f, 0.2f));
     
-    // get light list from the scene
-    std::list<Object*> lights;
-    sceneSet.findLights(lights);
+    // The 'scene'
+    ShapeSet masterSet;
     
-    // random number generator (for random pixel positions, light positions, etc)
-    RNG rng;
+    // Put a ground plane in (with bullseye texture!)
+    // Last parameter is whether to do the bullseye texture or not
+    Plane plane(Point(), Vector(0.0f, 1.0f, 0.0f), &blueishLambert, true);
+    plane.transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
+    masterSet.addShape(&plane);
     
+    // Add a pile-o-spheres with a few interesting materials
     
-    // set up the output file (TODO: the filename should probably be a commandline parameter)
-    std::ostringstream headerStream;
-    headerStream << "P6\n";
-    headerStream << kWidth << ' ' << kHeight << '\n';
-    headerStream << "255\n";
-    std::ofstream fileStream(outfile, std::ios::out | std::ios::binary);
-    fileStream << headerStream.str();
-
-
-    // for each row...
-    for (size_t y = 0; y < kHeight; ++y)
-    {
+    Sphere sphere1(Point(), 1.0f, &purplishLambert);
+    sphere1.transform().setTranslation(0.0f, Vector(2.0f, -1.0f, 0.0f));
+    sphere1.transform().setTranslation(1.0f, Vector(3.0f, -1.0f, 0.0f));
+    masterSet.addShape(&sphere1);
+    
+    Sphere sphere2(Point(), 2.0f, &greenishGlossy);
+    sphere2.transform().translate(0.0f, Vector(-3.0f, 0.0f, -2.0f));
+    masterSet.addShape(&sphere2);
+    
+    Sphere sphere3(Point(), 0.5f, &bluishGlossy);
+    sphere3.transform().translate(0.0f, Vector(1.5f, -1.5f, 2.5f));
+    masterSet.addShape(&sphere3);
+    
+    Sphere sphere4(Point(), 0.5f, &reflective);
+    sphere4.transform().translate(0.0f, Vector(-2.0, -1.5f, 1.0f));
+    masterSet.addShape(&sphere4);
+    
+    //     // Add a manually created mesh (a box), and read an OBJ file into a mesh
         
-        // for each pixel across the row...
-        for (size_t x = 0; x < kWidth; ++x)
-        {
-            
-            Color pixelColor(0.0f, 0.0f, 0.0f);
+    //     Mesh *cubeMesh = makeCube();
+    //     cubeMesh->setMaterial(&reddishLambert);
+    //     cubeMesh->transform().translate(0.0f, Vector(0.0f, -2.0f, -2.0f));
+    //     cubeMesh->transform().rotate(1.0f, Quaternion(Vector(0.0f, 1.0f, 0.0f), M_PI / 4.0f));
+    //     masterSet.addShape(cubeMesh);
 
-            // for each sample in the pixel...
-            for (size_t si = 0; si < kNumPixelSamples; ++si)
-            {
-                // calculate a random position within the pixel to hide aliasing,I would use pbrt functions to 
-                //implement it PPMs are top-down, and we're bottom up.  Flip pixel row to be in screen space.
-                float yu = 1.0f - ((y + rng.nextFloat()) / float(kHeight - 1));
-                float xu = (x + rng.nextFloat()) / float(kWidth - 1);
-                
-                // find out where this pixel sample hits in the scene, create a camera ray
-                Ray ray = createCameraRay(45.0f, Point(0.0f, 8.0f, 30.0f), Point(0.0f, 0.0f, 0.0f), Point(0.0f, 1.0f, 0.0f), xu, yu);
-                pixelColor += basic_tracing(ray, sceneSet, lights, rng);
+    //     Mesh* pOBJMesh = createFromOBJFile("../models/bumpy.obj");
+    //     pOBJMesh->setMaterial(&reddishGlossy);
+    //     pOBJMesh->transform().setTranslation(0.0f, Vector(0.2f, 0.0f, 0.0f));
+    //     pOBJMesh->transform().rotate(0.5f, Quaternion(Vector(0.0f, 1.0f, 0.0f), M_PI / 4.0f));
+    //     pOBJMesh->transform().rotate(1.0f, Quaternion(Vector(0.0f, 1.0f, 0.0f), M_PI / 2.0f));
+    // #if MAKE_OBJ_A_MESH_LIGHT
+    //     // For some fun, you can turn the OBJ mesh into a light (it's a bit noisy, though)
+    //     ShapeLight meshLight(pOBJMesh, Color(1.0f, 1.0f, 1.0f), 10.0f);
+    //     masterSet.addShape(&meshLight);
+    // #else
+    //     masterSet.addShape(pOBJMesh);
+    // #endif
 
-            }
-            // divide by the number of pixel samples (a box filter, essentially)
-            pixelColor /= kNumPixelSamples;
+    // Add an area light
+    RectangleLight areaLight(Point(),
+                             Vector(3.0f, 0.0f, 0.0f),
+                             Vector(0.0f, 0.0f, 3.0f),
+                             Color(1.0f, 1.0f, 1.0f),
+                             5.0f);
+    areaLight.transform().setTranslation(0.0f, Vector(-1.5f, 4.0f, -1.5f));
+    // Uncomment this to have the rect light hinge-swing downward
+//    areaLight.transform().setRotation(1.0f, Quaternion(Vector(0.0f, 0.0f, 1.0f), -M_PI / 4.0f));
+    masterSet.addShape(&areaLight);
 
-            // writing LDR pixel values, so clamp to 0..1 range first
-            pixelColor.clamp();
-            // get 24-bit pixel sample and write it out
-            unsigned char r, g, b;
-            r = static_cast<unsigned char>(pixelColor.m_r * 255.0f);
-            g = static_cast<unsigned char>(pixelColor.m_g * 255.0f);
-            b = static_cast<unsigned char>(pixelColor.m_b * 255.0f);
-            fileStream << r << g << b;
-        }
-    }
+    // Add an area light based on a shape (a sphere)
+    Sphere sphereForLight(Point(), 0.1f, &blueishLambert);
+    sphereForLight.transform().setTranslation(0.0f, Vector(0.0f, 0.5f, 4.0f));
+    sphereForLight.transform().setTranslation(0.33f, Vector(0.0f, 1.5f, 4.0f));
+    sphereForLight.transform().setTranslation(0.67f, Vector(1.0f, 1.5f, 4.0f));
+    sphereForLight.transform().setTranslation(1.0f, Vector(1.0f, 0.5f, 4.0f));
+    ShapeLight sphereLight(&sphereForLight, Color(1.0f, 1.0f, 0.3f), 100.0f);
+    masterSet.addShape(&sphereLight);
     
-    fileStream.flush();
-    fileStream.close();
+    // // Create the camera based on user settings
+    // PerspectiveCamera cam((float)ui->camFovSpinBox->value(),
+    //                       Point(-4.0f, 5.0f, 15.0f),
+    //                       Point(0.0f, 0.0f, 0.0f),
+    //                       Point(0.0f, 1.0f, 0.0f),
+    //                       (float)ui->focalDistanceSpinBox->value(),
+    //                       (float)ui->lensRadiusSpinBox->value(),
+    //                       (float)ui->shutterOpenSpinBox->value(),
+    //                       (float)ui->shutterCloseSpinBox->value());
     
-    return 0;
+    // // Ray trace!
+    // Image *pImage = raytrace(masterSet,
+    //                          cam,
+    //                          (size_t)ui->widthSpinBox->value(),
+    //                          (size_t)ui->heightSpinBox->value(),
+    //                          (unsigned int)ui->pixelSamplesSpinBox->value(),
+    //                          (unsigned int)ui->lightSamplesSpinBox->value(),
+    //                          (unsigned int)ui->rayDepthSpinBox->value());
+    
+    // displayImage(pImage);
+    
+    // Clean up the scene and render
+    // delete pImage;
+    // delete pOBJMesh;
+    cout << "=== KT Renderer ===" << endl;
 }
