@@ -2,7 +2,7 @@
 
 #include "KMath.h"
 #include "KRay.h"
-#include "KSampling.h"
+#include "KSampler.h"
 
 
 namespace KT

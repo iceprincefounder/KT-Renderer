@@ -3,38 +3,12 @@
 #include "KMath.h"
 #include "KRay.h"
 #include "KMaterial.h"
-#include "KScene.h"
+#include "KShape.h"
 #include "KLight.h"
 #include "KCamera.h"
 
 namespace KT
 {
-
-
-//
-// Image (collection of colored pixels with a width x height)
-//
-
-class Image
-{
-public:
-    Image(size_t width, size_t height)
-        : m_width(width), m_height(height), m_pixels(new Color[width * height]) { }
-    
-    virtual ~Image() { delete[] m_pixels; }
-    
-    size_t width()  const { return m_width; }
-    size_t height() const { return m_height; }
-    
-    Color& pixel(size_t x, size_t y)
-    {
-        return m_pixels[y * m_width + x];
-    }
-    
-protected:
-    size_t m_width, m_height;
-    Color *m_pixels;
-};
 
 
 //

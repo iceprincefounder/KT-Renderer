@@ -7,9 +7,9 @@
 #include "KMath.h"
 #include "KMaterial.h"
 #include "KRay.h"
-#include "KSampling.h"
+#include "KSampler.h"
 #include "KAccel.h"
-#include "KScene.h"
+#include "KShape.h"
 
 
 namespace KT
