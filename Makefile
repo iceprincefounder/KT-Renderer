@@ -1,4 +1,4 @@
-
+# Makefile for Linux Build
 LOGFILE=$(LOGPATH)`date +'%H:%M:%S'`
 
 SRC_DIR := ./src

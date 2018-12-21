@@ -138,6 +138,7 @@ public:
     virtual void refill(unsigned int) { m_currentSampleIndex = 0; }
     
 protected:
+
     unsigned int m_xSamples, m_ySamples;
 };
 
@@ -388,7 +389,6 @@ inline float powerHeuristic(unsigned int numSamples1, float pdf1, unsigned int n
 //
 // Sample space transformations
 //
-
 
 inline void concentricSampleDisk(float u1, float u2, float& outDx, float& outDy)
 {

@@ -4,7 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "KCore.h"
 
 namespace KT{
 
@@ -13,7 +12,7 @@ void driverImage(Image *image)
 
 }
 
-void ppm_driver(Image *image, char *outfile)
+void ppm_driver(Image *image, const char *outfile)
 {
     // set up the output file (TODO: the filename should probably be a commandline parameter)
     size_t kWidth = image->width();

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "KCore.h"
+#include "KRayTracer.h"
 
 // #include <QThread>
 

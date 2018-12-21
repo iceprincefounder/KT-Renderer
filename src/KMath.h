@@ -833,7 +833,7 @@ public:
     {
         return rotation(time) * n;
     }
-    
+
 private:
     std::vector<float>      m_time;
     std::vector<Vector>     m_scale;
@@ -977,6 +977,8 @@ inline Vector transformFromLocalCoordinateSpace(const Vector& v,
                   v.m_x * xAxis.m_y + v.m_y * yAxis.m_y + v.m_z * zAxis.m_y,
                   v.m_x * xAxis.m_z + v.m_y * yAxis.m_z + v.m_z * zAxis.m_z);
 }
+
+
 
 
 } // namespace KT
