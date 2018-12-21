@@ -2,7 +2,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "KMesh.h"
+#include "KPolyMesh.h"
 
 
 namespace KT

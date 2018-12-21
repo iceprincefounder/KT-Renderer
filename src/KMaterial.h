@@ -1,7 +1,6 @@
 #pragma once
 
-#include "KMath.h"
-#include "KRay.h"
+#include "KMathCore.h"
 #include "KSampler.h"
 
 
@@ -366,12 +365,12 @@ protected:
 
 
 // Perfect specular reflection
-class PerfectReflection : public Brdf
+class Reflection : public Brdf
 {
 public:
-    PerfectReflection() : Brdf() { }
+    Reflection() : Brdf() { }
     
-    virtual ~PerfectReflection() { }
+    virtual ~Reflection() { }
     
     
     virtual float evaluateSA(const Vector& incoming, const Vector& outgoing, const Vector& normal, float& outPdf) const
@@ -515,7 +514,7 @@ public:
     
 protected:
     Color m_color;
-    PerfectReflection m_refl;
+    Reflection m_refl;
 };
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "KMath.h"
+#include "KMathCore.h"
 #include "KRay.h"
 #include "KMaterial.h"
 #include "KShape.h"

@@ -3,7 +3,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "KMath.h"
+#include "KMathCore.h"
 
 
 namespace KT

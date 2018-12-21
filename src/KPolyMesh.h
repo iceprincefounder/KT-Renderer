@@ -4,11 +4,11 @@
 #include <vector>
 #include <algorithm>
 
-#include "KMath.h"
+#include "KMathCore.h"
 #include "KMaterial.h"
 #include "KRay.h"
 #include "KSampler.h"
-#include "KAccel.h"
+#include "KAccelerator.h"
 #include "KShape.h"
 
 

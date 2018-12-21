@@ -978,7 +978,4 @@ inline Vector transformFromLocalCoordinateSpace(const Vector& v,
                   v.m_x * xAxis.m_z + v.m_y * yAxis.m_z + v.m_z * zAxis.m_z);
 }
 
-
-
-
 } // namespace KT

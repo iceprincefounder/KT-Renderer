@@ -1,8 +1,7 @@
 #ifndef __KRAYTRACER_H__
 #define __KRAYTRACER_H__
 
-#include "KMath.h"
-#include "KRay.h"
+#include "KMathCore.h"
 #include "KMaterial.h"
 #include "KShape.h"
 #include "KLight.h"

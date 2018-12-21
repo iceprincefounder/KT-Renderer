@@ -3,7 +3,7 @@
 #include <limits>
 #include <algorithm>
 
-#include "KMath.h"
+#include "KMathCore.h"
 #include "KRay.h"
 
 
