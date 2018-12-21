@@ -25,7 +25,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 install:
 	@echo [${LOGFILE}] "--Run the tester..."
-	@${OBJ_DIR}/ktRender ${OBJ_DIR}/output.ppm
+	@#${OBJ_DIR}/ktRender ${OBJ_DIR}/output.ppm
 	@# xdg-open out/output.ppm
 	@# open ./output.ppm # MacOS setting
 	@echo [${LOGFILE}] "--Output file:${OBJ_DIR}/output.ppm"
