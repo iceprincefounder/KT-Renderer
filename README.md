@@ -1,12 +1,25 @@
-# kt-renderer
+# KT-Renderer Core
 
-Practise on creating ray-tracing based renderer
+A full featured Physically Based Path-tracing Renderer
 
-The practice of learning PBRT.
+
+#How to build
 
 ```
-cd /path/to/this/repository
+git clone https://github.com/iceprincefounder/KT-Renderer.git
+cd KT-Renderer
 make;make install
 ```
 
-        by K.T.
+#How to use
+
+```
+usage: ktRender -o <output.ppm>
+         -s   scene sources 
+         -t   thread number 
+         -o   output file(.ppm) 
+         -rd  ray depth    (default 1) 
+         -ps  pixle sample (default 1) 
+         -ls  light sample (default 1) 
+     KT-Renderer vx.xx by [Kevin Tsui]
+```

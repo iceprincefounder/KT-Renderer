@@ -62,10 +62,8 @@ int main(int argc, char *argv[]){
             // usage(argv[0]);
             printf("%s\n", "\t KT-Renderer v0.10 by [Kevin Tsui]");
     }
-
-    // Make a picture...
     
-    // Available materials
+    // The Materials
     DiffuseMaterial basicLambert(Color(0.7f, 0.7f, 0.7f));
     DiffuseMaterial redLambert(Color(0.7f, 0.1f, 0.1f));
     DiffuseMaterial greenLambert(Color(0.1f, 0.7f, 0.1f));
