@@ -1,12 +1,9 @@
-#include <fstream>
-#include <sstream>
-#include <iostream>
+#ifndef __KGEOREADER_H__
+#define __KGEOREADER_H__
 
-#include "KPolyMesh.h"
+#include "KPolymesh.h"
 
-
-namespace KT
-{
+namespace KT{
 
 /*
  * Brief overview of OBJ file format.  It is an ASCII format.  It has comments:
@@ -46,7 +43,8 @@ namespace KT
  * directive is also effectively ignored.  But the code is in there, so it
  * should be easy to enable it in the future.
  */
-Mesh* createFromOBJFile(const char* filename)
+
+Polymesh* readFromOBJFile(const char* filename)
 {
     std::ifstream input(filename);
     
@@ -98,10 +96,10 @@ Mesh* createFromOBJFile(const char* filename)
         else if (command == "vt")
         {
             // Note: there's an optional w coordinate that we're ignoring here
-//            Vec2 uv;
-//            lineInput >> uv.m_u;
-//            lineInput >> uv.m_v;
-//            uvs.push_back(uv);
+            // Vec2 uv;
+            // lineInput >> uv.m_u;
+            // lineInput >> uv.m_v;
+            // uvs.push_back(uv);
         }
         else if (command == "f")
         {
@@ -144,10 +142,10 @@ Mesh* createFromOBJFile(const char* filename)
                     std::cerr << "Found out-of-range vertex index: " << vi << std::endl;
                 if (gotUV)
                 {
-//                    uvi = uvi > 0 ? uvi - 1 : (int)uvs.size() + uvi;
-//                    face.m_uvIndices.push_back(uvi);
-//                    if (uvi >= uvs.size())
-//                        std::cerr << "Found out-of-range UV index: " << uvi << std::endl;
+                    // uvi = uvi > 0 ? uvi - 1 : (int)uvs.size() + uvi;
+                    // face.m_uvIndices.push_back(uvi);
+                    // if (uvi >= uvs.size())
+                    //     std::cerr << "Found out-of-range UV index: " << uvi << std::endl;
                 }
                 if (gotN)
                 {
@@ -177,8 +175,11 @@ Mesh* createFromOBJFile(const char* filename)
     }
     if (verts.empty() || faces.empty())
         return NULL;
-    return new Mesh(verts, normals, faces, NULL);
+    return new Polymesh(verts, normals, faces, NULL);
 }
 
 
-} // namespace KT
+}
+
+
+#endif //__KGEOREADER_H__

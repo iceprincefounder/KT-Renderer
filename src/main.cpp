@@ -3,6 +3,7 @@
 
 #include "KRayTracer.h"
 #include "KDriver.h"
+#include "KGeoReader.h"
 
 using namespace KT;
 using namespace std;
@@ -12,8 +13,8 @@ static void usage(const char * const program) {
     fprintf(stderr, "\t\t -s   scene sources \n");
     fprintf(stderr, "\t\t -t   thread number \n");
     fprintf(stderr, "\t\t -o   output file(.ppm) \n");
-    fprintf(stderr, "\t\t -rd  ray depth    (default 1) \n");
-    fprintf(stderr, "\t\t -ps  pixle sample (default 1) \n");
+    fprintf(stderr, "\t\t -rd  ray depth    (default 2) \n");
+    fprintf(stderr, "\t\t -ps  pixle sample (default 3) \n");
     fprintf(stderr, "\t\t -ls  light sample (default 1) \n");
     fprintf(stderr, "\t KT-Renderer v0.10 by [Kevin Tsui] \n");
     exit(1);
@@ -25,7 +26,7 @@ int main(int argc, char *argv[]){
     const char *outfile = "out/output.ppm";
     const char *rayDepth = "2";
     const char *pixleSample = "3";
-    const char *lightSample = "3";
+    const char *lightSample = "1";
     // const char *resolution = "FLOAT";
     // chasing arguments
     // if (argc == 1) usage(argv[0]);
@@ -90,13 +91,19 @@ int main(int argc, char *argv[]){
     sphere3.transform().translate(0.0f, Vector(1.5f, -1.5f, 2.5f));
     masterSet.addShape(&sphere3);
     
+    Polymesh* atangShape = readFromOBJFile("/home/xukai/Desktop/atang.obj");
+    atangShape->setMaterial(&basicLambert);
+    atangShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
+    atangShape->transform().scale(0.0f, Vector(0.3f, 0.3f, 0.3f));
+    masterSet.addShape(atangShape);
+
     // Add an area light
     RectangleLight rectangleLight(Point(),
-                             Vector(3.0f, 0.0f, 0.0f),
-                             Vector(0.0f, 0.0f, 3.0f),
+                             Vector(5.0f, 0.0f, 0.0f),
+                             Vector(0.0f, 0.0f, 5.0f),
                              Color(1.0f, 1.0f, 1.0f),
                              10.0f);
-    rectangleLight.transform().setTranslation(0.0f, Vector(-1.5f, 5.0f, -1.5f));
+    rectangleLight.transform().setTranslation(0.0f, Vector(-1.5f, 8.0f, -1.5f));
     masterSet.addShape(&rectangleLight);
     
     // Create the camera
