@@ -10,7 +10,6 @@ namespace KT
 //
 // Ray (directed line segment)
 //
-
 // Don't ever start a ray exactly where you previously hit; you must offset it
 // a little bit so you don't accidentally 'self-intersect'.
 const float kRayTMin = 0.0001f;
@@ -84,7 +83,6 @@ struct Ray
 //
 // Intersection (results from casting a ray)
 //
-
 class Shape;
 class Material;
 

@@ -13,7 +13,6 @@ namespace KT
 //
 // Cameras
 //
-
 class Camera
 {
 public:
@@ -64,7 +63,6 @@ protected:
 //
 // Image (collection of colored pixels with a width x height)
 //
-
 class Image
 {
 public:

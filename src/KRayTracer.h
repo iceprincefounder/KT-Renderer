@@ -1,5 +1,4 @@
-#ifndef __KRAYTRACER_H__
-#define __KRAYTRACER_H__
+#pragma once
 
 #include "KMathCore.h"
 #include "KMaterial.h"
@@ -13,7 +12,6 @@ namespace KT
 //
 // Sampler container (for a given pixel, holds the samplers for all random features and bounces)
 //
-
 struct SamplerSet
 {
     // These are sampled once per pixel sample to start a path
@@ -36,14 +34,13 @@ struct SamplerSet
 //
 // Ray tracing
 //
-
 // Path trace through the scene, starting with an initial ray.
 // Pass along scene information and various samplers so that we can reduce noise
 // along the way.
 Color pathTracer(const Ray& ray,
                 ShapeSet& scene,
                 std::vector<Shape*>& lights,
-                Rng& rng,
+                RNG& rng,
                 SamplerSet& samplers,
                 unsigned int pixelSampleIndex);
 
@@ -57,21 +54,21 @@ Image* rendering(ShapeSet& scene,
                  unsigned int maxRayDepth);
 
 //
-// RenderThread works on a small chunk of the image
+// RenderTask works on a small chunk of the image
 // But currently KT-Renderer is not runing on muti-threads
 //
-class RenderThread
+class RenderTask
 {
 public:
-    RenderThread(size_t xstart, size_t xend, size_t ystart, size_t yend,
-                 Image *pImage,
-                 ShapeSet& masterSet,
-                 const Camera& cam,
-                 std::vector<Shape*>& lights,
-                 unsigned int pixelSamplesHint,
-                 unsigned int lightSamplesHint,
-                 unsigned int maxRayDepth)
-        : m_xstart(xstart), m_xend(xend), m_ystart(ystart), m_yend(yend),
+    RenderTask(size_t xstart, size_t xend, size_t ystart, size_t yend,
+               Image *pImage,
+               ShapeSet& masterSet,
+               const Camera& cam,
+               std::vector<Shape*>& lights,
+               unsigned int pixelSamplesHint,
+               unsigned int lightSamplesHint,
+               unsigned int maxRayDepth):
+          m_xstart(xstart), m_xend(xend), m_ystart(ystart), m_yend(yend),
           m_pImage(pImage), m_masterSet(masterSet), m_camera(cam), m_lights(lights),
           m_pixelSamplesHint(pixelSamplesHint), m_lightSamplesHint(lightSamplesHint),
           m_maxRayDepth(maxRayDepth) { }
@@ -89,5 +86,4 @@ private:
 };
 
 } // namespace KT
-#endif // __KRAYTRACER_H__
 

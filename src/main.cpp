@@ -8,10 +8,16 @@
 using namespace KT;
 using namespace std;
 
+
+//
+// A common praser to get input args
+//
 static void usage(const char * const program) {
     fprintf(stderr, "usage: %s -o <output.ppm>\n", "ktRender");
     fprintf(stderr, "\t\t -s   scene sources \n");
     fprintf(stderr, "\t\t -t   thread number \n");
+    fprintf(stderr, "\t\t -w   width of output file  (default 512) \n");
+    fprintf(stderr, "\t\t -h   height of output file (default 512) \n");
     fprintf(stderr, "\t\t -o   output file(.ppm) \n");
     fprintf(stderr, "\t\t -rd  ray depth    (default 2) \n");
     fprintf(stderr, "\t\t -ps  pixle sample (default 3) \n");
@@ -23,6 +29,8 @@ static void usage(const char * const program) {
 int main(int argc, char *argv[]){
     const char *sources = NULL;
     const char *threads = "1";
+    const char *width = "512";
+    const char *height = "512";
     const char *outfile = "out/output.ppm";
     const char *rayDepth = "2";
     const char *pixleSample = "3";
@@ -91,11 +99,14 @@ int main(int argc, char *argv[]){
     sphere3.transform().translate(0.0f, Vector(1.5f, -1.5f, 2.5f));
     masterSet.addShape(&sphere3);
     
-    Polymesh* atangShape = readFromOBJFile("/home/xukai/Desktop/atang.obj");
-    atangShape->setMaterial(&basicLambert);
-    atangShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
-    atangShape->transform().scale(0.0f, Vector(0.3f, 0.3f, 0.3f));
-    masterSet.addShape(atangShape);
+    if (sources)
+    {
+        Polymesh* atangShape = readFromOBJFile(sources);
+        atangShape->setMaterial(&basicLambert);
+        atangShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
+        atangShape->transform().scale(0.0f, Vector(0.3f, 0.3f, 0.3f));
+        masterSet.addShape(atangShape);        
+    }
 
     // Add an area light
     RectangleLight rectangleLight(Point(),
@@ -121,8 +132,8 @@ int main(int argc, char *argv[]){
                               shutterOpen, shutterClose);    
     // Ray trace!
     size_t threadNumber = atoi(threads);
-    size_t widthSpinBox = 512;
-    size_t heightSpinBox = 512;
+    size_t imageWidth = atoi(width);
+    size_t imageHeight = atoi(height);
     unsigned int pixelSamplesSpinBox = atoi(pixleSample);
     unsigned int lightSamplesSpinBox = atoi(lightSample);
     unsigned int rayDepthSpinBox = atoi(rayDepth);
@@ -132,8 +143,8 @@ int main(int argc, char *argv[]){
                         masterSet,
                         camera,
                         threadNumber,
-                        widthSpinBox,
-                        heightSpinBox,
+                        imageWidth,
+                        imageHeight,
                         pixelSamplesSpinBox,
                         lightSamplesSpinBox,
                         rayDepthSpinBox);

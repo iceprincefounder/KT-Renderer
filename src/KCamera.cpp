@@ -21,13 +21,13 @@ PerspectiveCamera::PerspectiveCamera(float fieldOfViewInDegrees,
                                      float focalDistance,
                                      float lensRadius,
                                      float shutterOpen,
-                                     float shutterClose)
-    : Camera(shutterOpen, shutterClose),
-      m_origin(origin),
-      m_forward((target - origin).normalized()),
-      m_tanFov(std::tan(fieldOfViewInDegrees * M_PI / 180.0f)),
-      m_focalDistance(focalDistance),
-      m_lensRadius(lensRadius)
+                                     float shutterClose): 
+                                    Camera(shutterOpen, shutterClose),
+                                    m_origin(origin),
+                                    m_forward((target - origin).normalized()),
+                                    m_tanFov(std::tan(fieldOfViewInDegrees * M_PI / 180.0f)),
+                                    m_focalDistance(focalDistance),
+                                    m_lensRadius(lensRadius)
 {
     m_right = cross(m_forward, targetUpDirection);
     m_up = cross(m_right, m_forward); // no need to normalize, it already is

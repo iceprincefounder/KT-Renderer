@@ -13,20 +13,19 @@ namespace KT
 //
 // Random number and 1D/2D sample pattern generators
 //
-
 // Marsaglia multiply-with-carry psuedo random number generator.  It's very fast
 // and has good distribution properties.  Has a period of 2^60. See
 // http://groups.google.com/group/sci.crypt/browse_thread/thread/ca8682a4658a124d/
-struct Rng
+struct RNG
 {
     unsigned int m_z, m_w;
     
-    Rng(unsigned int z = 362436069, unsigned int w = 521288629)
+    RNG(unsigned int z = 362436069, unsigned int w = 521288629)
         : m_z(z), m_w(w) { }
     
-    Rng(const Rng& rng) : m_z(rng.m_z), m_w(rng.m_w) { }
+    RNG(const RNG& rng) : m_z(rng.m_z), m_w(rng.m_w) { }
     
-    Rng& operator =(const Rng& rng)
+    RNG& operator =(const RNG& rng)
     {
         m_z = rng.m_z;
         m_w = rng.m_w;
@@ -57,7 +56,7 @@ const unsigned int kUnlimitedSamples = 0;
 class Sampler
 {
 public:
-    Sampler(Rng& rng) : m_rng(rng), m_currentSampleIndex(0) { }
+    Sampler(RNG& rng) : m_rng(rng), m_currentSampleIndex(0) { }
     
     virtual ~Sampler() { }
     
@@ -97,7 +96,7 @@ public:
     virtual void refill(unsigned int permutation) = 0;
     
 protected:
-    Rng& m_rng;
+    RNG& m_rng;
     unsigned int m_currentSampleIndex;
 };
 
@@ -105,10 +104,10 @@ protected:
 class RandomSampler : public Sampler
 {
 public:
-    RandomSampler(unsigned int xSamples, unsigned int ySamples, Rng& rng)
+    RandomSampler(unsigned int xSamples, unsigned int ySamples, RNG& rng)
         : Sampler(rng), m_xSamples(xSamples), m_ySamples(ySamples) { }
     
-    RandomSampler(unsigned int samples, Rng& rng)
+    RandomSampler(unsigned int samples, RNG& rng)
         : Sampler(rng), m_xSamples(samples), m_ySamples(0) { }
     
     virtual ~RandomSampler() { }
@@ -148,15 +147,22 @@ class StratifiedRandomSampler : public Sampler
 public:
     StratifiedRandomSampler(unsigned int xSamples,
                             unsigned int ySamples,
-                            Rng& rng,
-                            unsigned int permutation)
-        : Sampler(rng), m_permutation(permutation), m_xSamples(xSamples),
-          m_ySamples(ySamples), m_samples(new float[xSamples * ySamples * 2]),
-          m_is2D(true) { generateSamples(); }
+                            RNG& rng,
+                            unsigned int permutation):
+                          Sampler(rng), 
+                          m_permutation(permutation), 
+                          m_xSamples(xSamples),
+                          m_ySamples(ySamples), 
+                          m_samples(new float[xSamples * ySamples * 2]),
+                          m_is2D(true) { generateSamples(); }
     
-    StratifiedRandomSampler(unsigned int samples, Rng& rng, unsigned int permutation)
-        : Sampler(rng), m_permutation(permutation), m_xSamples(samples),
-          m_ySamples(0), m_samples(new float[samples]), m_is2D(false) { generateSamples(); }
+    StratifiedRandomSampler(unsigned int samples, RNG& rng, unsigned int permutation): 
+                          Sampler(rng), 
+                          m_permutation(permutation), 
+                          m_xSamples(samples),
+                          m_ySamples(0), 
+                          m_samples(new float[samples]), 
+                          m_is2D(false) { generateSamples(); }
     
     virtual ~StratifiedRandomSampler() { delete[] m_samples; }
     
@@ -249,16 +255,22 @@ class CorrelatedMultiJitterSampler : public Sampler
 public:
     CorrelatedMultiJitterSampler(unsigned int xSamples,
                                  unsigned int ySamples,
-                                 Rng& rng,
-                                 unsigned int permutation)
-        : Sampler(rng), m_permutation(permutation), m_xSamples(xSamples),
-          m_ySamples(ySamples), m_is2D(true) { }
+                                 RNG& rng,
+                                 unsigned int permutation):
+                              Sampler(rng), 
+                              m_permutation(permutation), 
+                              m_xSamples(xSamples),
+                              m_ySamples(ySamples), 
+                              m_is2D(true) { }
     
     CorrelatedMultiJitterSampler(unsigned int samples,
-                                 Rng& rng,
-                                 unsigned int permutation)
-        : Sampler(rng), m_permutation(permutation), m_xSamples(samples),
-          m_ySamples(0), m_is2D(false) { }
+                                 RNG& rng,
+                                 unsigned int permutation):
+                              Sampler(rng), 
+                              m_permutation(permutation), 
+                              m_xSamples(samples),
+                              m_ySamples(0), 
+                              m_is2D(false) { }
     
     virtual ~CorrelatedMultiJitterSampler() { }
     
@@ -372,7 +384,6 @@ protected:
 //
 // Multiple importance sampling weightings
 //
-
 inline float balanceHeuristic(unsigned int numSamples1, float pdf1, unsigned int numSamples2, float pdf2)
 {
     return numSamples1 * pdf1 / (numSamples1 * pdf1 + numSamples2 * pdf2);
@@ -389,7 +400,6 @@ inline float powerHeuristic(unsigned int numSamples1, float pdf1, unsigned int n
 //
 // Sample space transformations
 //
-
 inline void concentricSampleDisk(float u1, float u2, float& outDx, float& outDy)
 {
     float r, theta;

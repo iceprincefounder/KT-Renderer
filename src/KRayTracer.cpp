@@ -13,11 +13,11 @@ namespace KT
 {
 
 Color pathTracer(const Ray& ray,
-                ShapeSet& scene,
-                std::vector<Shape*>& lights,
-                Rng& rng,
-                SamplerSet& samplers,
-                unsigned int pixelSampleIndex)
+                 ShapeSet& scene,
+                 std::vector<Shape*>& lights,
+                 RNG& rng,
+                 SamplerSet& samplers,
+                 unsigned int pixelSampleIndex)
 {
     // Accumulate total incoming radiance in 'result'
     Color result = Color(0.0f, 0.0f, 0.0f);
@@ -54,7 +54,7 @@ Color pathTracer(const Ray& ray,
         Point position = intersection.position();
         Vector normal = intersection.m_normal;
         Vector outgoing = -currentRay.m_direction;
-        Brdf* pBrdf = NULL;
+        BRDF* pBrdf = NULL;
         float brdfWeight = 1.0f;
         Color matColor = intersection.m_pMaterial->evaluate(position,
                                                             normal,
@@ -226,12 +226,12 @@ Color pathTracer(const Ray& ray,
     return result;
 }
 
-void RenderThread::raytracing()
+void RenderTask::raytracing()
 {
         // Random number generator (for random pixel positions, light positions, etc)
         // We seed the generator for this render thread based on something that
         // doesn't change, but gives us a good variable seed for each thread.
-        Rng rng(static_cast<unsigned int>(((m_xstart << 16) | m_xend) ^ m_xstart),
+        RNG rng(static_cast<unsigned int>(((m_xstart << 16) | m_xend) ^ m_xstart),
                 static_cast<unsigned int>(((m_ystart << 16) | m_yend) ^ m_ystart));
         
         // The aspect ratio is used to make the image only get more zoomed in when
@@ -385,7 +385,7 @@ Image* rendering(ShapeSet& scene,
     
     // Set up render threads
     size_t numRenderThreads = xChunks * yChunks;
-    RenderThread **renderThreads = new RenderThread*[numRenderThreads];
+    RenderTask **renderThreads = new RenderTask*[numRenderThreads];
     
     // Launch render threads
     for (size_t yc = 0; yc < yChunks; ++yc)
@@ -399,7 +399,7 @@ Image* rendering(ShapeSet& scene,
             size_t xStart = xc * xChunkSize;
             size_t xEnd = std::min((xc + 1) * xChunkSize, width);
             // Render the chunk!
-            renderThreads[yc * xChunks + xc] = new RenderThread(xStart,
+            renderThreads[yc * xChunks + xc] = new RenderTask(xStart,
                                                                 xEnd,
                                                                 yStart,
                                                                 yEnd,
@@ -421,7 +421,7 @@ Image* rendering(ShapeSet& scene,
     }
     delete[] renderThreads;
     
-    // We made a picture!
+    // Return a picture
     return pImage;
 }
 

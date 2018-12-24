@@ -258,7 +258,7 @@ public:
 protected:
     std::vector<Shape*> m_shapes;
     std::vector<Shape*> m_infiniteShapes;
-    Bvh<ShapeSet> m_bvh;
+    BVH<ShapeSet> m_bvh;
 };
 
 

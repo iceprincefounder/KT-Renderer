@@ -107,7 +107,7 @@ protected:
     std::vector<Face> m_faces;
     Material *m_pMaterial;
     BBox m_bbox;
-    Bvh<Polymesh> m_bvh;
+    BVH<Polymesh> m_bvh;
     std::vector<float> m_faceAreaCDF;
     float m_totalArea;
     

@@ -12,12 +12,12 @@ namespace KT
 // BRDF (bidirectional reflectance distribution function)
 //
 
-class Brdf
+class BRDF
 {
 public:
-    Brdf() { }
+    BRDF() { }
     
-    virtual ~Brdf() { }
+    virtual ~BRDF() { }
     
     /*
      * BRDF details:
@@ -80,10 +80,10 @@ public:
 
 
 // Lambertian diffuse BRDF
-class Lambert : public Brdf
+class Lambert : public BRDF
 {
 public:
-    Lambert() : Brdf() { }
+    Lambert() : BRDF() { }
     
     virtual ~Lambert() { }
     
@@ -197,10 +197,10 @@ public:
 
 
 // Ashikhmin-Shirley glossy BRDF, without anisotropy
-class Glossy : public Brdf
+class Glossy : public BRDF
 {
 public:
-    Glossy(float roughness) : Brdf(), m_exponent(1.0f / (roughness * roughness)) { }
+    Glossy(float roughness) : BRDF(), m_exponent(1.0f / (roughness * roughness)) { }
     
     virtual ~Glossy() { }
     
@@ -364,11 +364,11 @@ protected:
 };
 
 
-// Perfect specular reflection
-class Reflection : public Brdf
+// Specular reflection
+class Reflection : public BRDF
 {
 public:
-    Reflection() : Brdf() { }
+    Reflection() : BRDF() { }
     
     virtual ~Reflection() { }
     
@@ -426,7 +426,6 @@ public:
 //
 // Material
 //
-
 class Material
 {
 public:
@@ -438,7 +437,7 @@ public:
     virtual Color evaluate(const Point& position,
                            const Vector& normal,
                            const Vector& outgoingRayDirection,
-                           Brdf*& pBrdfChosen,
+                           BRDF*& pBrdfChosen,
                            float& brdfWeight) = 0;
 };
 
@@ -454,7 +453,7 @@ public:
     virtual Color evaluate(const Point& position,
                            const Vector& normal,
                            const Vector& outgoingRayDirection,
-                           Brdf*& pBrdfChosen,
+                           BRDF*& pBrdfChosen,
                            float& brdfWeight)
     {
         brdfWeight = 1.0f;
@@ -479,7 +478,7 @@ public:
     virtual Color evaluate(const Point& position,
                            const Vector& normal,
                            const Vector& outgoingRayDirection,
-                           Brdf*& pBrdfChosen,
+                           BRDF*& pBrdfChosen,
                            float& brdfWeight)
     {
         brdfWeight = 1.0f;
@@ -504,7 +503,7 @@ public:
     virtual Color evaluate(const Point& position,
                            const Vector& normal,
                            const Vector& outgoingRayDirection,
-                           Brdf*& pBrdfChosen,
+                           BRDF*& pBrdfChosen,
                            float& brdfWeight)
     {
         brdfWeight = 1.0f;
@@ -531,7 +530,7 @@ public:
     virtual Color evaluate(const Point& position,
                            const Vector& normal,
                            const Vector& incomingRayDirection,
-                           Brdf*& pBrdfChosen,
+                           BRDF*& pBrdfChosen,
                            float& brdfWeight)
     {
         // Let the emittance take care of business

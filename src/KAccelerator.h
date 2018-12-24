@@ -109,12 +109,12 @@ struct BBox
 
 
 // BVH node flags: split axis takes up the first two bits, and the leaf vs interior takes the 3rd bit
-typedef unsigned int BvhNodeFlags;
-const BvhNodeFlags kSplitX = 0;
-const BvhNodeFlags kSplitY = 1;
-const BvhNodeFlags kSplitZ = 2;
-const BvhNodeFlags kSplitFlags = 0x3;
-const BvhNodeFlags kLeafNode = 0x4;
+typedef unsigned int BVHNodeFlags;
+const BVHNodeFlags kSplitX = 0;
+const BVHNodeFlags kSplitY = 1;
+const BVHNodeFlags kSplitZ = 2;
+const BVHNodeFlags kSplitFlags = 0x3;
+const BVHNodeFlags kLeafNode = 0x4;
 // 29 bits left over for # of prims if we ever get around to that
 
 
@@ -126,7 +126,7 @@ const BvhNodeFlags kLeafNode = 0x4;
 // primitive index, but don't need the child node index (and vice-versa), so we
 // stick them in a union because the node uses either the child index or the
 // primitive index, but not both at the same time (ever).
-struct BvhNode
+struct BVHNode
 {
     BBox m_bbox;
     union
@@ -134,12 +134,12 @@ struct BvhNode
         unsigned int m_firstChild;
         unsigned int m_prim;
     };
-    BvhNodeFlags m_flags;
+    BVHNodeFlags m_flags;
     
-    BvhNode() { }
-    BvhNode(const BvhNode& n) : m_bbox(n.m_bbox), m_prim(n.m_prim), m_flags(n.m_flags) { }
+    BVHNode() { }
+    BVHNode(const BVHNode& n) : m_bbox(n.m_bbox), m_prim(n.m_prim), m_flags(n.m_flags) { }
     
-    BvhNode& operator =(const BvhNode& n)
+    BVHNode& operator =(const BVHNode& n)
     {
         m_bbox = n.m_bbox;
         m_prim = n.m_prim;
@@ -151,7 +151,7 @@ struct BvhNode
     bool interiorNode() const { return (m_flags & kLeafNode) == 0; }
     
     // Splitting axis
-    BvhNodeFlags split() const { return m_flags & kSplitFlags; }
+    BVHNodeFlags split() const { return m_flags & kSplitFlags; }
     
     // Children nodes stored consecutively
     unsigned int leftChildIndex()  const { return m_firstChild; }
@@ -184,12 +184,12 @@ struct BvhNode
  * The first two methods are used during building, the second two during tracing.
  */
 template<typename T>
-class Bvh
+class BVH
 {
 public:
-    Bvh(T& object);
+    BVH(T& object);
     
-    ~Bvh();
+    ~BVH();
     
     // Call this before tracing any rays through the BVH!
     bool build();
@@ -200,7 +200,7 @@ public:
     
 private:
     T& m_object;
-    BvhNode *m_nodes;
+    BVHNode *m_nodes;
     unsigned int m_numNodes;
     
     // A couple of helper structs for building the BVH
@@ -219,9 +219,9 @@ private:
     struct BuildElementPredicate
     {
         float m_splitAxis;
-        BvhNodeFlags m_split;
+        BVHNodeFlags m_split;
         
-        BuildElementPredicate(float splitAxis, BvhNodeFlags split)
+        BuildElementPredicate(float splitAxis, BVHNodeFlags split)
             : m_splitAxis(splitAxis), m_split(split) { }
         
         bool operator ()(const BuildElement& elem)
@@ -240,20 +240,20 @@ private:
 
 
 template<typename T>
-Bvh<T>::Bvh(T& object)
+BVH<T>::BVH(T& object)
     : m_object(object), m_nodes(NULL), m_numNodes(0)
 {
     
 }
 
 template<typename T>
-Bvh<T>::~Bvh()
+BVH<T>::~BVH()
 {
     if (m_nodes != NULL) delete[] m_nodes;
 }
 
 template<typename T>
-bool Bvh<T>::build()
+bool BVH<T>::build()
 {
     // Prep for the build: get primitive bboxes, indices, and set up the actual
     // BVH node storage so we can start filling it out.
@@ -270,7 +270,7 @@ bool Bvh<T>::build()
         totalBBox = totalBBox.combined(elems[i].m_bbox);
     }
     // There can be exactly this many BVH nodes total.  It just works.
-    m_nodes = new BvhNode[numElems * 2 - 1];
+    m_nodes = new BVHNode[numElems * 2 - 1];
     // We start with one node already set aside (the root node)
     m_numNodes = 1;
     // Start building (with the root node)
@@ -281,7 +281,7 @@ bool Bvh<T>::build()
 }
 
 template<typename T>
-bool Bvh<T>::buildRange(BuildElement *permutedElements,
+bool BVH<T>::buildRange(BuildElement *permutedElements,
                         unsigned int begin, unsigned int end,
                         unsigned int nodeIndex, const BBox& nodeBBox)
 {
@@ -298,7 +298,7 @@ bool Bvh<T>::buildRange(BuildElement *permutedElements,
     
     // Pick split axis
     Vector extents = nodeBBox.m_max - nodeBBox.m_min;
-    BvhNodeFlags split;
+    BVHNodeFlags split;
     if (extents.x > extents.y)
     {
         if (extents.x > extents.z)
@@ -380,7 +380,7 @@ struct TraversalStep
 };
 
 template<typename T>
-bool Bvh<T>::doesIntersect(const Ray& ray)
+bool BVH<T>::doesIntersect(const Ray& ray)
 {
     // Ray-bbox intersection uses the inverse direction (for performance reasons)
     Vector invDir(1.0f / ray.m_direction);
@@ -407,7 +407,7 @@ bool Bvh<T>::doesIntersect(const Ray& ray)
     while (numSteps > 0 && numSteps <= kMaxTraversalSteps)
     {
         unsigned int step = numSteps - 1;
-        const BvhNode& node = m_nodes[steps[step].m_nodeIndex];
+        const BVHNode& node = m_nodes[steps[step].m_nodeIndex];
         
         // Test prim if this is a prim node
         if (node.leafNode())
@@ -464,7 +464,7 @@ bool Bvh<T>::doesIntersect(const Ray& ray)
 }
 
 template<typename T>
-bool Bvh<T>::intersect(Intersection& intersection)
+bool BVH<T>::intersect(Intersection& intersection)
 {
     // Ray-bbox intersection uses the inverse direction (for performance reasons)
     Vector invDir(1.0f / intersection.m_ray.m_direction);
@@ -495,7 +495,7 @@ bool Bvh<T>::intersect(Intersection& intersection)
     while (numSteps > 0 && numSteps <= kMaxTraversalSteps)
     {
         unsigned int step = numSteps - 1;
-        const BvhNode& node = m_nodes[steps[step].m_nodeIndex];
+        const BVHNode& node = m_nodes[steps[step].m_nodeIndex];
         
         // Test prim if this is a prim node
         if (node.leafNode())

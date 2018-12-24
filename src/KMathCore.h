@@ -6,7 +6,6 @@
 
 
 #ifndef M_PI
-    // For some reason, MSVC doesn't define this when <cmath> is included
     #define M_PI 3.14159265358979
 #endif
 
@@ -353,8 +352,6 @@ inline Vector min(const Vector& v1, const Vector& v2)
 }
 
 
-// Oh, by the way, a point can be thought of as just a vector, but where you
-// refrain from doing dot/cross/normalize operations on it.
 typedef Vector Point;
 
 

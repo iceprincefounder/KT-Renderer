@@ -1,5 +1,4 @@
-#ifndef __KGEOREADER_H__
-#define __KGEOREADER_H__
+#pragma once
 
 #include "KPolymesh.h"
 
@@ -7,7 +6,7 @@ namespace KT{
 
 /*
  * Brief overview of OBJ file format.  It is an ASCII format.  It has comments:
- *     # This is a comment
+ * 
  * Vertices:
  *     v 0.1 -2.0 3.5
  *   -or-
@@ -178,8 +177,4 @@ Polymesh* readFromOBJFile(const char* filename)
     return new Polymesh(verts, normals, faces, NULL);
 }
 
-
-}
-
-
-#endif //__KGEOREADER_H__
+}// end namespace KT
