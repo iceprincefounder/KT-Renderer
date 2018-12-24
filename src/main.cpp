@@ -17,9 +17,9 @@ static void usage(const char * const program) {
     fprintf(stderr, "usage: %s <command args ...>\n", "ktRender");
     fprintf(stderr, "\t\t -s   scene sources \n");
     fprintf(stderr, "\t\t -t   thread number \n");
-    fprintf(stderr, "\t\t -w   width of output file  (default 512) \n");
-    fprintf(stderr, "\t\t -h   height of output file (default 512) \n");
     fprintf(stderr, "\t\t -o   output file(.ppm) \n");
+    fprintf(stderr, "\t\t -wd   width of output file  (default 512) \n");
+    fprintf(stderr, "\t\t -ht   height of output file (default 512) \n");
     fprintf(stderr, "\t\t -rd  ray depth    (default 2) \n");
     fprintf(stderr, "\t\t -ps  pixle sample (default 3) \n");
     fprintf(stderr, "\t\t -ls  light sample (default 1) \n");
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
     // chasing arguments
     if (argc == 1) usage(argv[0]);
     for (int i = 1; i < argc; i++) {
-        if (i > 6)
+        if (i > 14)
             printf("Too many arguments!");
         else if (strcmp(argv[i], "-s") == 0)
         {
@@ -54,6 +54,14 @@ int main(int argc, char *argv[]){
         {
             outfile = argv[i + 1];i++;
         }
+        else if (strcmp(argv[i], "-wd") == 0)
+        {
+            width = argv[i + 1];i++;
+        }
+        else if (strcmp(argv[i], "-ht") == 0)
+        {
+            height = argv[i + 1];i++;
+        }
         else if (strcmp(argv[i], "-ld") == 0)
         {
             rayDepth = argv[i + 1];i++;
@@ -66,7 +74,7 @@ int main(int argc, char *argv[]){
         {
             lightSample = argv[i + 1];i++;
         }
-        else if (strcmp(argv[i], "-h") == 0)
+        else if (strcmp(argv[i], "--help") == 0)
             usage(argv[0]); 
         else
             usage(argv[0]);
@@ -96,17 +104,17 @@ int main(int argc, char *argv[]){
     
     
     Sphere sphere1(Point(), 1.0f, &redLambert);
-    sphere1.transform().setTranslation(0.0f, Vector(2.0f, -1.0f, 0.0f));
-    sphere1.transform().setTranslation(1.0f, Vector(3.0f, -1.0f, 0.0f));
-    masterSet.addShape(&sphere1);
+    sphere1.transform().setTranslation(0.0f, Vector(2.0f, -1.0f, 1.0f));
+    sphere1.transform().setTranslation(1.0f, Vector(3.0f, -1.0f, 1.0f));
+    // masterSet.addShape(&sphere1);
     
     Sphere sphere2(Point(), 2.0f, &greenLambert);
     sphere2.transform().translate(0.0f, Vector(-3.0f, 0.0f, -2.0f));
-    masterSet.addShape(&sphere2);
+    // masterSet.addShape(&sphere2);
     
     Sphere sphere3(Point(), 0.5f, &blueLambert);
     sphere3.transform().translate(0.0f, Vector(1.5f, -1.5f, 2.5f));
-    masterSet.addShape(&sphere3);
+    // masterSet.addShape(&sphere3);
     
     if (sources)
     {
@@ -123,7 +131,7 @@ int main(int argc, char *argv[]){
                              Vector(5.0f, 0.0f, 0.0f),
                              Vector(0.0f, 0.0f, 5.0f),
                              Color(1.0f, 1.0f, 1.0f),
-                             10.0f);
+                             13.0f);
     rectangleLight.transform().setTranslation(0.0f, Vector(-1.5f, 8.0f, -1.5f));
     masterSet.addShape(&rectangleLight);
 
