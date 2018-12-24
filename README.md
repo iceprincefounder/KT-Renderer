@@ -17,9 +17,11 @@ make;make install
 usage: ktRender -o <output.ppm>
          -s   scene sources 
          -t   thread number 
+         -w   width of output file  (default 512) 
+         -h   height of output file (default 512) 
          -o   output file(.ppm) 
-         -rd  ray depth    (default 1) 
-         -ps  pixle sample (default 1) 
+         -rd  ray depth    (default 2) 
+         -ps  pixle sample (default 3) 
          -ls  light sample (default 1) 
-     KT-Renderer vx.xx by [Kevin Tsui]
+     KT-Renderer v0.20 by [Kevin Tsui]
 ```

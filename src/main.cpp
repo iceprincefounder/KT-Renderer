@@ -3,6 +3,7 @@
 
 #include "KRayTracer.h"
 #include "KDriver.h"
+#include "KLog.h"
 #include "KGeoReader.h"
 
 using namespace KT;
@@ -13,7 +14,7 @@ using namespace std;
 // A common praser to get input args
 //
 static void usage(const char * const program) {
-    fprintf(stderr, "usage: %s -o <output.ppm>\n", "ktRender");
+    fprintf(stderr, "usage: %s <command args ...>\n", "ktRender");
     fprintf(stderr, "\t\t -s   scene sources \n");
     fprintf(stderr, "\t\t -t   thread number \n");
     fprintf(stderr, "\t\t -w   width of output file  (default 512) \n");
@@ -22,7 +23,7 @@ static void usage(const char * const program) {
     fprintf(stderr, "\t\t -rd  ray depth    (default 2) \n");
     fprintf(stderr, "\t\t -ps  pixle sample (default 3) \n");
     fprintf(stderr, "\t\t -ls  light sample (default 1) \n");
-    fprintf(stderr, "\t KT-Renderer v0.10 by [Kevin Tsui] \n");
+    fprintf(stderr, "\t KT-Renderer v0.20 by [Kevin Tsui] \n");
     exit(1);
 }
 
@@ -35,9 +36,9 @@ int main(int argc, char *argv[]){
     const char *rayDepth = "2";
     const char *pixleSample = "3";
     const char *lightSample = "1";
-    // const char *resolution = "FLOAT";
+
     // chasing arguments
-    // if (argc == 1) usage(argv[0]);
+    if (argc == 1) usage(argv[0]);
     for (int i = 1; i < argc; i++) {
         if (i > 6)
             printf("Too many arguments!");
@@ -68,16 +69,24 @@ int main(int argc, char *argv[]){
         else if (strcmp(argv[i], "-h") == 0)
             usage(argv[0]); 
         else
-            // usage(argv[0]);
-            printf("%s\n", "\t KT-Renderer v0.10 by [Kevin Tsui]");
+            usage(argv[0]);
     }
+
+    Log renderLog;
+    // printf("[%s] %s\n", "KT-Renderer v0.10 by [Kevin Tsui]");
+    renderLog.logging("-- Render Start ----");
     
+
+    renderLog.logging("Genarating Scenes ...");
+
+    renderLog.logging("\t\tcreate materials");
     // The Materials
     DiffuseMaterial basicLambert(Color(0.7f, 0.7f, 0.7f));
     DiffuseMaterial redLambert(Color(0.7f, 0.1f, 0.1f));
     DiffuseMaterial greenLambert(Color(0.1f, 0.7f, 0.1f));
     DiffuseMaterial blueLambert(Color(0.1f, 0.1f, 0.7f));
     
+    renderLog.logging("\t\tcreate shapes");
     // The 'scene'
     ShapeSet masterSet;
     
@@ -108,6 +117,7 @@ int main(int argc, char *argv[]){
         masterSet.addShape(atangShape);        
     }
 
+    renderLog.logging("\t\tcreate lights");
     // Add an area light
     RectangleLight rectangleLight(Point(),
                              Vector(5.0f, 0.0f, 0.0f),
@@ -116,7 +126,8 @@ int main(int argc, char *argv[]){
                              10.0f);
     rectangleLight.transform().setTranslation(0.0f, Vector(-1.5f, 8.0f, -1.5f));
     masterSet.addShape(&rectangleLight);
-    
+
+    renderLog.logging("\t\tcreate cameras");    
     // Create the camera
     float FOV = 45;
     Point position = Point(-4.0f, 5.0f, 15.0f);
@@ -139,19 +150,24 @@ int main(int argc, char *argv[]){
     unsigned int rayDepthSpinBox = atoi(rayDepth);
 
 
+    renderLog.logging("Ray Tracing ...");
     Image *pImage = rendering(
                         masterSet,
                         camera,
+                        renderLog,
                         threadNumber,
                         imageWidth,
                         imageHeight,
                         pixelSamplesSpinBox,
                         lightSamplesSpinBox,
                         rayDepthSpinBox);
-    
+
+    renderLog.logging("Writing Output Image...");    
     // output images
     ppm_driver(pImage,outfile);
     
     // Clean up the scene and render
     delete pImage;
+    renderLog.logging("-- Render Shut Down ----");    
+
 }

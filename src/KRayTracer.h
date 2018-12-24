@@ -5,6 +5,7 @@
 #include "KShape.h"
 #include "KLight.h"
 #include "KCamera.h"
+#include "KLog.h"
 
 namespace KT
 {
@@ -46,6 +47,7 @@ Color pathTracer(const Ray& ray,
 
 Image* rendering(ShapeSet& scene,
                  const Camera& cam,
+                 Log& renderLog,
                  size_t theads,
                  size_t width,
                  size_t height,

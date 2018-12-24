@@ -2,7 +2,6 @@
 #include <iostream>
 #include <sstream>
 #include <stdio.h>
-
 #include "KRayTracer.h"
 
 
@@ -351,6 +350,7 @@ void RenderTask::raytracing()
 
 Image* rendering(ShapeSet& scene,
                  const Camera& cam,
+                 Log& renderLog,
                  size_t theads,
                  size_t width,
                  size_t height,
@@ -360,8 +360,9 @@ Image* rendering(ShapeSet& scene,
 {
     // Get light list from the scene
     std::vector<Shape*> lights;
+    renderLog.logging("\t\tfind lights");
     scene.findLights(lights);
-    
+    renderLog.logging("\t\tscene prepare");    
     scene.prepare();
     
     // Set up the output image
@@ -388,6 +389,7 @@ Image* rendering(ShapeSet& scene,
     RenderTask **renderThreads = new RenderTask*[numRenderThreads];
     
     // Launch render threads
+    renderLog.logging("\t\tstart ray trace");
     for (size_t yc = 0; yc < yChunks; ++yc)
     {
         // Get the row start/end (making sure the last chunk doesn't go off the end)
