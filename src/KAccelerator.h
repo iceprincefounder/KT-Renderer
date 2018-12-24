@@ -27,7 +27,7 @@ struct BBox
         return *this;
     }
     
-    bool valid() const { return m_min.m_x < m_max.m_x && m_min.m_y < m_max.m_y && m_min.m_z < m_max.m_z; }
+    bool valid() const { return m_min.x < m_max.x && m_min.y < m_max.y && m_min.z < m_max.z; }
     bool empty() const { return !valid(); }
     
     bool intersects(const Ray& ray, float& inout_t0, float& inout_t1) const
@@ -72,9 +72,9 @@ struct BBox
     bool contains(const Point& p) const
     {
         // Is the point inside the bbox?
-        return m_min.m_x <= p.m_x && m_max.m_x >= p.m_x &&
-               m_min.m_y <= p.m_y && m_max.m_y >= p.m_y &&
-               m_min.m_z <= p.m_z && m_max.m_z >= p.m_z;
+        return m_min.x <= p.x && m_max.x >= p.x &&
+               m_min.y <= p.y && m_max.y >= p.y &&
+               m_min.z <= p.z && m_max.z >= p.z;
     }
     
     BBox intersection(const BBox& bbox) const
@@ -90,12 +90,12 @@ struct BBox
         Point corners[8] =
         {
             m_min,
-            Point(m_min.m_x, m_min.m_y, m_max.m_z),
-            Point(m_min.m_x, m_max.m_y, m_min.m_z),
-            Point(m_min.m_x, m_max.m_y, m_max.m_z),
-            Point(m_max.m_x, m_min.m_y, m_min.m_z),
-            Point(m_max.m_x, m_min.m_y, m_max.m_z),
-            Point(m_max.m_x, m_max.m_y, m_min.m_z),
+            Point(m_min.x, m_min.y, m_max.z),
+            Point(m_min.x, m_max.y, m_min.z),
+            Point(m_min.x, m_max.y, m_max.z),
+            Point(m_max.x, m_min.y, m_min.z),
+            Point(m_max.x, m_min.y, m_max.z),
+            Point(m_max.x, m_max.y, m_min.z),
             m_max
         };
         BBox result;
@@ -226,9 +226,9 @@ private:
         
         bool operator ()(const BuildElement& elem)
         {
-            return (m_split == kSplitX && m_splitAxis < (elem.m_bbox.m_max.m_x + elem.m_bbox.m_min.m_x) * 0.5f) ||
-                   (m_split == kSplitY && m_splitAxis < (elem.m_bbox.m_max.m_y + elem.m_bbox.m_min.m_y) * 0.5f) ||
-                   (m_split == kSplitZ && m_splitAxis < (elem.m_bbox.m_max.m_z + elem.m_bbox.m_min.m_z) * 0.5f);
+            return (m_split == kSplitX && m_splitAxis < (elem.m_bbox.m_max.x + elem.m_bbox.m_min.x) * 0.5f) ||
+                   (m_split == kSplitY && m_splitAxis < (elem.m_bbox.m_max.y + elem.m_bbox.m_min.y) * 0.5f) ||
+                   (m_split == kSplitZ && m_splitAxis < (elem.m_bbox.m_max.z + elem.m_bbox.m_min.z) * 0.5f);
         }
     };
     
@@ -299,14 +299,14 @@ bool Bvh<T>::buildRange(BuildElement *permutedElements,
     // Pick split axis
     Vector extents = nodeBBox.m_max - nodeBBox.m_min;
     BvhNodeFlags split;
-    if (extents.m_x > extents.m_y)
+    if (extents.x > extents.y)
     {
-        if (extents.m_x > extents.m_z)
+        if (extents.x > extents.z)
             split = kSplitX;
         else
             split = kSplitZ;
     }
-    else if (extents.m_y > extents.m_z)
+    else if (extents.y > extents.z)
         split = kSplitY;
     else
         split = kSplitZ;
@@ -315,11 +315,11 @@ bool Bvh<T>::buildRange(BuildElement *permutedElements,
     // build would do something more sophisticated here).
     float splitAxis;
     if (split == kSplitX)
-        splitAxis = (nodeBBox.m_max.m_x + nodeBBox.m_min.m_x) * 0.5f;
+        splitAxis = (nodeBBox.m_max.x + nodeBBox.m_min.x) * 0.5f;
     else if (split == kSplitY)
-        splitAxis = (nodeBBox.m_max.m_y + nodeBBox.m_min.m_y) * 0.5f;
+        splitAxis = (nodeBBox.m_max.y + nodeBBox.m_min.y) * 0.5f;
     else
-        splitAxis = (nodeBBox.m_max.m_z + nodeBBox.m_min.m_z) * 0.5f;
+        splitAxis = (nodeBBox.m_max.z + nodeBBox.m_min.z) * 0.5f;
     
     m_nodes[nodeIndex].m_bbox = nodeBBox;
     m_nodes[nodeIndex].m_flags = split;
@@ -389,9 +389,9 @@ bool Bvh<T>::doesIntersect(const Ray& ray)
     // which direction the ray is going relative to each BVH node's spliting axis
     bool dirSigns[3] =
     {
-        invDir.m_x < 0.0f,
-        invDir.m_y < 0.0f,
-        invDir.m_z < 0.0f
+        invDir.x < 0.0f,
+        invDir.y < 0.0f,
+        invDir.z < 0.0f
     };
     
     // Maintain a list of nodes we need to examine, and the enter/exit distances
@@ -473,9 +473,9 @@ bool Bvh<T>::intersect(Intersection& intersection)
     // which direction the ray is going relative to each BVH node's spliting axis
     bool dirSigns[3] =
     {
-        invDir.m_x < 0.0f,
-        invDir.m_y < 0.0f,
-        invDir.m_z < 0.0f
+        invDir.x < 0.0f,
+        invDir.y < 0.0f,
+        invDir.z < 0.0f
     };
     
     // Maintain a list of nodes we need to examine, and the enter/exit distances

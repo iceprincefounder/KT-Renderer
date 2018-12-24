@@ -86,8 +86,8 @@ public:
                                  0.0f);
         
         // Do the actual range check
-        if (localPoint.m_x < 0.0f || localPoint.m_x > side1Length ||
-            localPoint.m_y < 0.0f || localPoint.m_y > side2Length)
+        if (localPoint.x < 0.0f || localPoint.x > side1Length ||
+            localPoint.y < 0.0f || localPoint.y > side2Length)
         {
             return false;
         }
@@ -146,8 +146,8 @@ public:
                                  0.0f);
         
         // Do the actual range check
-        if (localPoint.m_x < 0.0f || localPoint.m_x > side1Length ||
-            localPoint.m_y < 0.0f || localPoint.m_y > side2Length)
+        if (localPoint.x < 0.0f || localPoint.x > side1Length ||
+            localPoint.y < 0.0f || localPoint.y > side2Length)
         {
             return false;
         }

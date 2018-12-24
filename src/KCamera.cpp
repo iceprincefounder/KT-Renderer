@@ -64,7 +64,7 @@ Ray PerspectiveCamera::makeRay(float xScreen, float yScreen, float lensU, float 
         localRayDirection.normalize();
 
         // Compute primary ray focal plane intersection
-        float focusT = (m_focalDistance - nearDistance) / localRayDirection.m_z;
+        float focusT = (m_focalDistance - nearDistance) / localRayDirection.z;
         Point focusPoint = m_origin + ray.m_direction * focusT;
 
         // Modify primary ray origin

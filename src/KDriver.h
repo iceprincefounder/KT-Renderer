@@ -34,9 +34,9 @@ void ppm_driver(Image *image, const char *outfile)
         {
             unsigned char r, g, b;
             Color pixelColor = image->pixel(x,y);
-            r = static_cast<unsigned char>(pixelColor.m_r * 255.0f);
-            g = static_cast<unsigned char>(pixelColor.m_g * 255.0f);
-            b = static_cast<unsigned char>(pixelColor.m_b * 255.0f);
+            r = static_cast<unsigned char>(pixelColor.r * 255.0f);
+            g = static_cast<unsigned char>(pixelColor.g * 255.0f);
+            b = static_cast<unsigned char>(pixelColor.b * 255.0f);
             fileStream << r << g << b;
         }
     }

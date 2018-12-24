@@ -80,17 +80,17 @@ Polymesh* readFromOBJFile(const char* filename)
         {
             // NOTE: there is an optional w coordinate that we're ignoring here
             Point v;
-            lineInput >> v.m_x;
-            lineInput >> v.m_y;
-            lineInput >> v.m_z;
+            lineInput >> v.x;
+            lineInput >> v.y;
+            lineInput >> v.z;
             verts.push_back(v);
         }
         else if (command == "vn")
         {
             Vector v;
-            lineInput >> v.m_x;
-            lineInput >> v.m_y;
-            lineInput >> v.m_z;
+            lineInput >> v.x;
+            lineInput >> v.y;
+            lineInput >> v.z;
             normals.push_back(v);
         }
         else if (command == "vt")
