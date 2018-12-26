@@ -5,11 +5,10 @@
 #include "KRayTracer.h"
 
 
-using namespace KT;
+using namespace kt;
 
 
-namespace KT
-{
+namespace kt{
 
 Color pathTracer(const Ray& ray,
                  ShapeSet& scene,
@@ -52,6 +51,8 @@ Color pathTracer(const Ray& ray,
         // Evaluate the material and intersection information at this bounce
         Point position = intersection.position();
         Vector normal = intersection.m_normal;
+        // Primary current ray come from camera, so in physical world, it is 
+        // outgoing ray.
         Vector outgoing = -currentRay.m_direction;
         BRDF* pBrdf = NULL;
         float brdfWeight = 1.0f;
@@ -72,12 +73,13 @@ Color pathTracer(const Ray& ray,
             numDiracBounces++;
         
         // Evaluate direct lighting at this bounce
-        
         if (!lastBounceDiracDistribution)
         {
             Color lightResult = Color(0.0f, 0.0f, 0.0f);
-            float lightSelectionWeight = float(lights.size()) / samplers.m_numLightSamples;
-            for (size_t lightSampleIndex = 0; lightSampleIndex < samplers.m_numLightSamples; ++lightSampleIndex)
+            float lightSelectionWeight = \
+                float(lights.size()) / samplers.m_numLightSamples;
+            for (size_t lightSampleIndex = 0; 
+                 lightSampleIndex < samplers.m_numLightSamples; ++lightSampleIndex)
             {
                 // Sample lights using MIS between the light and the BRDF.
                 // This means we ask the light for a direction, and the likelihood
@@ -99,8 +101,8 @@ Color pathTracer(const Ray& ray,
                 // worth the overhead.
                 
                 // Select a light randomly for this sample
-                unsigned int finalLightSampleIndex = pixelSampleIndex * samplers.m_numLightSamples +
-                                                     lightSampleIndex;
+                unsigned int finalLightSampleIndex = pixelSampleIndex * \
+                    samplers.m_numLightSamples + lightSampleIndex;
                 float liu = samplers.m_lightSelectionSamplers[numBounces]->sample1D(finalLightSampleIndex);
                 size_t lightIndex = (size_t)(liu * lights.size());
                 if (lightIndex >= lights.size())
@@ -123,7 +125,7 @@ Color pathTracer(const Ray& ray,
                                            lightPdf);
                 
                 if (lightPdf > 0.0f)
-                {   
+                {
                     // Ask the BRDF what it thinks of this light position (for MIS)
                     Vector lightIncoming = position - lightPoint;
                     float lightDistance = lightIncoming.normalize();
@@ -132,7 +134,7 @@ Color pathTracer(const Ray& ray,
                                                          outgoing,
                                                          normal,
                                                          brdfPdf);
-                    if (brdfResult > 0.0f && brdfPdf > 0.0f)
+                    if (brdfPdf > 0.0f && brdfResult > 0.0f)
                     {
                         // Fire a shadow ray to make sure we can actually see the light position
                         Ray shadowRay(position, -lightIncoming, lightDistance - kRayTMin, ray.m_time);
@@ -168,7 +170,7 @@ Color pathTracer(const Ray& ray,
                     if (intersected && shadowIntersection.m_pShape == pLightShape)
                     {
                         // Ask the light what it thinks of this direction (for MIS)
-                        lightPdf = pLightShape->intersectPdf(shadowIntersection);
+                        lightPdf = pLightShape->intersectPDF(shadowIntersection);
                         if (lightPdf > 0.0f)
                         {
                             // BRDF chose the light, so let's add that
@@ -193,7 +195,9 @@ Color pathTracer(const Ray& ray,
                 
         // Sample the BRDF to find the direction the next leg of the path goes in
         float brdfSampleU, brdfSampleV;
-        samplers.m_bounceSamplers[numBounces]->sample2D(pixelSampleIndex, brdfSampleU, brdfSampleV);
+        samplers.m_bounceSamplers[numBounces]->sample2D(pixelSampleIndex, 
+                                                        brdfSampleU, 
+                                                        brdfSampleV);
         Vector incoming;
         float incomingBrdfPdf = 0.0f;
         float incomingBrdfResult = pBrdf->sampleSA(incoming,
@@ -208,10 +212,11 @@ Color pathTracer(const Ray& ray,
             currentRay.m_origin = position;
             currentRay.m_direction = -incoming;
             currentRay.m_tMax = kRayTMax;
-            // Reduce lighting effect for the next bounce based on this bounce's BRDF
-            throughput *= intersection.m_colorModifier * matColor * incomingBrdfResult *
-                          (std::fabs(dot(-incoming, normal)) /
-                          (incomingBrdfPdf * brdfWeight));
+            // Reduce lighting effect for the next bounce based on this bounce's 
+            // BRDF.
+            throughput *= \
+            intersection.m_colorModifier * matColor * incomingBrdfResult * \
+            (std::fabs(dot(-incoming, normal)) / (incomingBrdfPdf * brdfWeight));
         }
         else
         {
@@ -349,7 +354,7 @@ void RenderTask::raytracing()
 };
 
 Image* rendering(ShapeSet& scene,
-                 const Camera& cam,
+                 const Camera& camera,
                  Log& renderLog,
                  size_t theads,
                  size_t width,
@@ -402,16 +407,16 @@ Image* rendering(ShapeSet& scene,
             size_t xEnd = std::min((xc + 1) * xChunkSize, width);
             // Render the chunk!
             renderThreads[yc * xChunks + xc] = new RenderTask(xStart,
-                                                                xEnd,
-                                                                yStart,
-                                                                yEnd,
-                                                                pImage,
-                                                                scene,
-                                                                cam,
-                                                                lights,
-                                                                pixelSamplesHint,
-                                                                lightSamplesHint,
-                                                                maxRayDepth);
+                                                              xEnd,
+                                                              yStart,
+                                                              yEnd,
+                                                              pImage,
+                                                              scene,
+                                                              camera,
+                                                              lights,
+                                                              pixelSamplesHint,
+                                                              lightSamplesHint,
+                                                              maxRayDepth);
             renderThreads[yc * xChunks + xc]->raytracing();
         }
     }
@@ -419,7 +424,7 @@ Image* rendering(ShapeSet& scene,
     // Clean up render thread objects
     for (size_t i = 0; i < numRenderThreads; ++i)
     {
-        delete renderThreads[i];
+        delete[] renderThreads[i];
     }
     delete[] renderThreads;
     
@@ -427,4 +432,4 @@ Image* rendering(ShapeSet& scene,
     return pImage;
 }
 
-} // namespace KT
+} // namespace kt

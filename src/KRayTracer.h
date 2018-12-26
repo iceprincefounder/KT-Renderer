@@ -7,8 +7,7 @@
 #include "KCamera.h"
 #include "KLog.h"
 
-namespace KT
-{
+namespace kt{
 
 //
 // Sampler container (for a given pixel, holds the samplers for all random features and bounces)
@@ -46,7 +45,7 @@ Color pathTracer(const Ray& ray,
                 unsigned int pixelSampleIndex);
 
 Image* rendering(ShapeSet& scene,
-                 const Camera& cam,
+                 const Camera& camera,
                  Log& renderLog,
                  size_t theads,
                  size_t width,
@@ -57,7 +56,7 @@ Image* rendering(ShapeSet& scene,
 
 //
 // RenderTask works on a small chunk of the image
-// But currently KT-Renderer is not runing on muti-threads
+// But currently kt-Renderer is not runing on muti-threads
 //
 class RenderTask
 {
@@ -87,5 +86,5 @@ private:
     unsigned int m_maxRayDepth;
 };
 
-} // namespace KT
+} // namespace kt
 

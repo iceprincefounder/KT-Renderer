@@ -1,10 +1,12 @@
 #pragma once
 
+#include <cmath>
 #include "KMathCore.h"
 #include "KSampler.h"
 
+using namespace std;
 
-namespace KT
+namespace kt
 {
 
 
@@ -23,9 +25,9 @@ public:
      * BRDF details:
      * 
      * There are two variations of each of these functions: those that produce
-     * PDFs with respect to solid angle (not accounting for angle between
-     * outgoing vector and the normal) or projected solid angle (the opposite).
-     * The PDFs always go from 0.0 to 1.0.
+     * PDFs (probability distribution functions) with respect to solid angle (not 
+     * accounting for angle between outgoing vector and the normal) or projected 
+     * solid angle (the opposite). The PDFs always go from 0.0 to 1.0.
      * 
      * The outgoing direction is away from the surface in the same hemisphere as
      * the normal, while the incoming is toward the surface opposite the normal.
@@ -50,26 +52,42 @@ public:
      * the sample methods will return the exact input direction with a PDF of 1.0.
      */
     
-    virtual float evaluateSA(const Vector& incoming, const Vector& outgoing, const Vector& normal, float& outPdf)  const = 0;
-    virtual float evaluatePSA(const Vector& incoming, const Vector& outgoing, const Vector& normal, float& outPdf) const
+    virtual float evaluateSA(const Vector& incoming, 
+                             const Vector& outgoing, 
+                             const Vector& normal, 
+                             float& outPDF)  const = 0;
+    virtual float evaluatePSA(const Vector& incoming, 
+                              const Vector& outgoing, 
+                              const Vector& normal, 
+                              float& outPDF) const
     {
-        float reflectance = evaluateSA(incoming, outgoing, normal, outPdf);
+        float reflectance = evaluateSA(incoming, outgoing, normal, outPDF);
         // Convert from solid-angle PDF to projected-solid-angle PDF
-        outPdf /= std::fabs(dot(incoming, normal));
+        outPDF /= std::fabs(dot(incoming, normal));
         return reflectance;
     }
     
-    virtual float sampleSA(Vector& outIncoming, const Vector& outgoing, const Vector& normal, float u1, float u2, float& outPdf)  const = 0;
-    virtual float samplePSA(Vector& outIncoming, const Vector& outgoing, const Vector& normal, float u1, float u2, float& outPdf) const
+    virtual float sampleSA(Vector& outIncoming, 
+                           const Vector& outgoing, 
+                           const Vector& normal, 
+                           float u1, float u2, float& outPDF)  const = 0;
+    virtual float samplePSA(Vector& outIncoming, 
+                            const Vector& outgoing, 
+                            const Vector& normal, 
+                            float u1, float u2, float& outPDF) const
     {
-        float reflectance = sampleSA(outIncoming, outgoing, normal, u1, u2, outPdf);
+        float reflectance = sampleSA(outIncoming, outgoing, normal, u1, u2, outPDF);
         // Convert from solid-angle PDF to projected-solid-angle PDF
-        outPdf /= std::fabs(dot(outIncoming, normal));
+        outPDF /= std::fabs(dot(outIncoming, normal));
         return reflectance;
     }
     
-    virtual float pdfSA(const Vector& incoming, const Vector& outgoing, const Vector& normal)  const = 0;
-    virtual float pdfPSA(const Vector& incoming, const Vector& outgoing, const Vector& normal) const
+    virtual float pdfSA(const Vector& incoming, 
+                        const Vector& outgoing, 
+                        const Vector& normal)  const = 0;
+    virtual float pdfPSA(const Vector& incoming, 
+                         const Vector& outgoing, 
+                         const Vector& normal) const
     {
         // Convert from solid-angle PDF to projected-solid-angle PDF
         return pdfSA(incoming, outgoing, normal) / std::fabs(dot(incoming, normal));
@@ -88,7 +106,10 @@ public:
     virtual ~Lambert() { }
     
     
-    virtual float evaluateSA(const Vector& incoming, const Vector& outgoing, const Vector& normal, float& outPdf) const
+    virtual float evaluateSA(const Vector& incoming, 
+                             const Vector& outgoing, 
+                             const Vector& normal, 
+                             float& outPDF) const
     {
         // If incoming and outgoing are in the same hemisphere, that means the
         // direction is on the backside of the other and no reflection occurs
@@ -97,15 +118,18 @@ public:
         if ((nDotI > 0.0f && nDotO > 0.0f) ||
             (nDotI < 0.0f && nDotO < 0.0f))
         {
-            outPdf = 0.0f;
+            outPDF = 0.0f;
             return 0.0f;
         }
         // Standard solid-angle PDF for diffuse reflectance
-        outPdf = std::fabs(nDotI) / M_PI;
+        outPDF = std::fabs(nDotI) / M_PI;
         return 1.0f / M_PI;
     }
     
-    virtual float evaluatePSA(const Vector& incoming, const Vector& outgoing, const Vector& normal, float& outPdf) const
+    virtual float evaluatePSA(const Vector& incoming, 
+                              const Vector& outgoing, 
+                              const Vector& normal, 
+                              float& outPDF) const
     {
         // If incoming and outgoing are in the same hemisphere, that means the
         // direction is on the backside of the other and no reflection occurs
@@ -114,17 +138,20 @@ public:
         if ((nDotI > 0.0f && nDotO > 0.0f) ||
             (nDotI < 0.0f && nDotO < 0.0f))
         {
-            outPdf = 0.0f;
+            outPDF = 0.0f;
             return 0.0f;
         }
         // Standard projected-solid-angle PDF for diffuse reflectance;
         // and yes, Virginia, they're the same (and end up canceling out later)
-        outPdf = 1.0f / M_PI;
+        outPDF = 1.0f / M_PI;
         return 1.0f / M_PI;
     }
     
     
-    virtual float sampleSA(Vector& outIncoming, const Vector& outgoing, const Vector& normal, float u1, float u2, float& outPdf) const
+    virtual float sampleSA(Vector& outIncoming, 
+                           const Vector& outgoing, 
+                           const Vector& normal, 
+                           float u1, float u2, float& outPDF) const
     {
         // Generate incoming direction towards normal in the hemisphere,
         // favoring directions near the pole
@@ -138,12 +165,15 @@ public:
         if (dot(outgoing, normal) < 0.0f)
             outIncoming *= -1.0f;
         // Standard solid-angle PDF for diffuse reflectance
-        outPdf = std::fabs(dot(-outIncoming, normal)) / M_PI;
+        outPDF = std::fabs(dot(-outIncoming, normal)) / M_PI;
         // Normalized diffuse reflectance is always 1/pi
         return 1.0f / M_PI;
     }
     
-    virtual float samplePSA(Vector& outIncoming, const Vector& outgoing, const Vector& normal, float u1, float u2, float& outPdf) const
+    virtual float samplePSA(Vector& outIncoming, 
+                            const Vector& outgoing, 
+                            const Vector& normal, 
+                            float u1, float u2, float& outPDF) const
     {
         // Generate incoming direction towards normal in the hemisphere,
         // favoring directions near the pole
@@ -158,13 +188,15 @@ public:
             outIncoming *= -1.0f;
         // Standard projected-solid-angle PDF for diffuse reflectance;
         // and yes, Virginia, they're the same (and end up canceling out later)
-        outPdf = 1.0f / M_PI;
+        outPDF = 1.0f / M_PI;
         // Normalized diffuse reflectance is always 1/pi
         return 1.0f / M_PI;
     }
     
     
-    virtual float pdfSA(const Vector& incoming, const Vector& outgoing, const Vector& normal) const
+    virtual float pdfSA(const Vector& incoming, 
+                        const Vector& outgoing, 
+                        const Vector& normal) const
     {
         // If incoming and outgoing are in the same hemisphere, that means the
         // direction is on the backside of the other and no reflection occurs
@@ -179,7 +211,9 @@ public:
         return std::fabs(nDotI) / M_PI;
     }
     
-    virtual float pdfPSA(const Vector& incoming, const Vector& outgoing, const Vector& normal) const
+    virtual float pdfPSA(const Vector& incoming, 
+                         const Vector& outgoing, 
+                         const Vector& normal) const
     {
         // If incoming and outgoing are in the same hemisphere, that means the
         // direction is on the backside of the other and no reflection occurs
@@ -215,7 +249,9 @@ public:
                 std::pow(std::max(1.0f - cosTheta, 0.0f), 5);
     }
     
-    virtual float evaluateSA(const Vector& incoming, const Vector& outgoing, const Vector& normal, float& outPdf) const
+    virtual float evaluateSA(const Vector& incoming, 
+                             const Vector& outgoing, 
+                             const Vector& normal, float& outPDF) const
     {
         // If incoming and outgoing are in the same hemisphere, that means the
         // direction is on the backside of the other and no reflection occurs
@@ -224,7 +260,7 @@ public:
         if ((nDotI > 0.0f && nDotO > 0.0f) ||
             (nDotI < 0.0f && nDotO < 0.0f))
         {
-            outPdf = 0.0f;
+            outPDF = 0.0f;
             return 0.0f;
         }
         // Compute microfacet model half-vector, taking care not to produce garbage
@@ -237,11 +273,13 @@ public:
         // Standard A-S model components, but using the D-BRDF microfacet denominator
         float d = (m_exponent + 1.0f) * std::pow(std::fabs(dot(normal, half)), m_exponent) / (2.0f * M_PI);
         float result = fresnel * d / (4.0f * std::fabs(nDotO + -nDotI - nDotO * -nDotI));
-        outPdf = d / (4.0f * std::fabs(dot(outgoing, half)));
+        outPDF = d / (4.0f * std::fabs(dot(outgoing, half)));
         return result;
     }
     
-    virtual float evaluatePSA(const Vector& incoming, const Vector& outgoing, const Vector& normal, float& outPdf) const
+    virtual float evaluatePSA(const Vector& incoming, 
+                              const Vector& outgoing, 
+                              const Vector& normal, float& outPDF) const
     {
         // If incoming and outgoing are in the same hemisphere, that means the
         // direction is on the backside of the other and no reflection occurs
@@ -250,7 +288,7 @@ public:
         if ((nDotI > 0.0f && nDotO > 0.0f) ||
             (nDotI < 0.0f && nDotO < 0.0f))
         {
-            outPdf = 0.0f;
+            outPDF = 0.0f;
             return 0.0f;
         }
         // Compute microfacet model half-vector, taking care not to produce garbage
@@ -263,12 +301,15 @@ public:
         // Standard A-S model components, but using the D-BRDF microfacet denominator
         float d = (m_exponent + 1.0f) * std::pow(std::fabs(dot(normal, half)), m_exponent) / (2.0f * M_PI);
         float result = fresnel * d / (4.0f * std::fabs(nDotO + -nDotI - nDotO * -nDotI));
-        outPdf = d / (4.0f * std::fabs(dot(outgoing, half)) * std::fabs(nDotI));
+        outPDF = d / (4.0f * std::fabs(dot(outgoing, half)) * std::fabs(nDotI));
         return result;
     }
     
     
-    virtual float sampleSA(Vector& outIncoming, const Vector& outgoing, const Vector& normal, float u1, float u2, float& outPdf) const
+    virtual float sampleSA(Vector& outIncoming, 
+                           const Vector& outgoing, 
+                           const Vector& normal, 
+                           float u1, float u2, float& outPDF) const
     {
         // Generate half-vector from the A-S model
         float phi = 2.0f * M_PI * u1;
@@ -288,10 +329,13 @@ public:
         // Reflect outgoing past half-vector to get incoming
         outIncoming = outgoing - half * (2.0f * dot(outgoing, half));
         // Evaluate the A-S model to get final reflectance and PDF
-        return evaluateSA(outIncoming, outgoing, normal, outPdf);
+        return evaluateSA(outIncoming, outgoing, normal, outPDF);
     }
     
-    virtual float samplePSA(Vector& outIncoming, const Vector& outgoing, const Vector& normal, float u1, float u2, float& outPdf) const
+    virtual float samplePSA(Vector& outIncoming, 
+                            const Vector& outgoing, 
+                            const Vector& normal, 
+                            float u1, float u2, float& outPDF) const
     {
         // Generate half-vector from the A-S model
         float phi = 2.0f * M_PI * u1;
@@ -311,11 +355,13 @@ public:
         // Reflect outgoing past half-vector to get incoming
         outIncoming = outgoing - half * (2.0f * dot(outgoing, half));
         // Evaluate the A-S model to get final reflectance and PDF
-        return evaluatePSA(outIncoming, outgoing, normal, outPdf);
+        return evaluatePSA(outIncoming, outgoing, normal, outPDF);
     }
     
     
-    virtual float pdfSA(const Vector& incoming, const Vector& outgoing, const Vector& normal) const
+    virtual float pdfSA(const Vector& incoming, 
+                        const Vector& outgoing, 
+                        const Vector& normal) const
     {
         // If incoming and outgoing are in the same hemisphere, that means the
         // direction is on the backside of the other and no reflection occurs
@@ -337,7 +383,9 @@ public:
                (8.0f * M_PI * std::fabs(dot(outgoing, half)));
     }
     
-    virtual float pdfPSA(const Vector& incoming, const Vector& outgoing, const Vector& normal) const
+    virtual float pdfPSA(const Vector& incoming, 
+                         const Vector& outgoing, 
+                         const Vector& normal) const
     {
         // If incoming and outgoing are in the same hemisphere, that means the
         // direction is on the backside of the other and no reflection occurs
@@ -355,8 +403,8 @@ public:
         else
             half = (outgoing - incoming).normalized();
         // Evaluate the A-S model to get final PDF
-        return (m_exponent + 1.0f) * std::pow(std::fabs(dot(normal, half)), m_exponent) /
-               (8.0f * M_PI * std::fabs(dot(outgoing, half)) * std::fabs(nDotI));
+        return (m_exponent + 1.0f) * std::pow(std::fabs(dot(normal, half)), 
+            m_exponent) /(8.0f * M_PI * std::fabs(dot(outgoing, half)) * std::fabs(nDotI));
     }
     
 protected:
@@ -373,48 +421,63 @@ public:
     virtual ~Reflection() { }
     
     
-    virtual float evaluateSA(const Vector& incoming, const Vector& outgoing, const Vector& normal, float& outPdf) const
+    virtual float evaluateSA(const Vector& incoming, 
+                             const Vector& outgoing, 
+                             const Vector& normal, 
+                             float& outPDF) const
     {
         // Not possible to randomly sample this direction by chance
-        outPdf = 0.0f;
+        outPDF = 0.0f;
         return 0.0f;
     }
     
-    virtual float evaluatePSA(const Vector& incoming, const Vector& outgoing, const Vector& normal, float& outPdf) const
+    virtual float evaluatePSA(const Vector& incoming, 
+                              const Vector& outgoing, 
+                              const Vector& normal, float& outPDF) const
     {
         // Not possible to randomly sample this direction by chance
-        outPdf = 0.0f;
+        outPDF = 0.0f;
         return 0.0f;
     }
     
     
-    virtual float sampleSA(Vector& outIncoming, const Vector& outgoing, const Vector& normal, float u1, float u2, float& outPdf) const
+    virtual float sampleSA(Vector& outIncoming, 
+                           const Vector& outgoing, 
+                           const Vector& normal, 
+                           float u1, float u2, float& outPDF) const
     {
         if (dot(normal, outgoing) < 0.0f)
             outIncoming = outgoing + 2.0f * normal * dot(normal, outgoing);
         else
             outIncoming = outgoing - 2.0f * normal * dot(normal, outgoing);
-        outPdf = std::fabs(dot(-outIncoming, normal));
+        outPDF = std::fabs(dot(-outIncoming, normal));
         return 1.0f;
     }
     
-    virtual float samplePSA(Vector& outIncoming, const Vector& outgoing, const Vector& normal, float u1, float u2, float& outPdf) const
+    virtual float samplePSA(Vector& outIncoming, 
+                            const Vector& outgoing, 
+                            const Vector& normal, 
+                            float u1, float u2, float& outPDF) const
     {
         if (dot(normal, outgoing) < 0.0f)
             outIncoming = outgoing + 2.0f * normal * dot(normal, outgoing);
         else
             outIncoming = outgoing - 2.0f * normal * dot(normal, outgoing);
-        outPdf = 1.0f;
+        outPDF = 1.0f;
         return 1.0f;
     }
     
     
-    virtual float pdfSA(const Vector& incoming, const Vector& outgoing, const Vector& normal) const
+    virtual float pdfSA(const Vector& incoming, 
+                        const Vector& outgoing, 
+                        const Vector& normal) const
     {
         return std::fabs(dot(-incoming, normal));
     }
     
-    virtual float pdfPSA(const Vector& incoming, const Vector& outgoing, const Vector& normal) const
+    virtual float pdfPSA(const Vector& incoming, 
+                         const Vector& outgoing, 
+                         const Vector& normal) const
     {
         return 1.0f;
     }
@@ -471,7 +534,9 @@ protected:
 class GlossyMaterial : public Material
 {
 public:
-    GlossyMaterial(const Color& color, float roughness) : m_color(color), m_glossy(roughness) { }
+    GlossyMaterial(const Color& color, float roughness) : 
+                                                   m_color(color), 
+                                                   m_glossy(roughness) { }
     
     virtual ~GlossyMaterial() { }
     
@@ -492,7 +557,7 @@ protected:
 };
 
 
-// Perfect reflection material
+// Reflection material
 class ReflectionMaterial : public Material
 {
 public:
@@ -517,13 +582,15 @@ protected:
 };
 
 
-// Emitter (light) material
-class Emitter : public Material
+// Emitter material (normally a light material)
+class EmitterMaterial : public Material
 {
 public:
-    Emitter(const Color& color, float power) : m_color(color), m_power(power) { }
+    EmitterMaterial(const Color& color, float power):
+                                            m_color(color), 
+                                            m_power(power) { }
     
-    virtual ~Emitter() { }
+    virtual ~EmitterMaterial() { }
     
     virtual Color emittance() { return m_color * m_power; }
     
@@ -538,11 +605,11 @@ public:
         brdfWeight = 1.0f;
         return Color();
     }
-    
+
 protected:
     Color m_color;
     float m_power;
 };
 
 
-} // namespace KT
+} // namespace kt

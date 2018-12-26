@@ -6,13 +6,11 @@
 
 #include "KMathCore.h"
 #include "KMaterial.h"
-#include "KRay.h"
 #include "KSampler.h"
 #include "KAccelerator.h"
 
 
-namespace KT
-{
+namespace kt{
 
 
 //
@@ -27,7 +25,7 @@ public:
     virtual ~Shape() { }
     
     const Transform& transform() const { return m_transform; }
-    Transform&       transform()       { return m_transform; }
+          Transform& transform()       { return m_transform; }
     
     // Subclasses must implement this; this is the meat of ray tracing.
     // The first version finds the nearest intersection, the second just tells
@@ -56,9 +54,9 @@ public:
                                float u3,
                                Point& outPosition,
                                Vector& outNormal,
-                               float& outPdf)
+                               float& outPDF)
     {
-        outPdf = 0.0f;
+        outPDF = 0.0f;
         return false;
     }
     
@@ -73,11 +71,11 @@ public:
     {
         Vector incoming = surfPosition - refPosition;
         float dist = incoming.normalize();
-        return dist * dist * surfaceAreaPdf() / std::fabs(dot(surfNormal, incoming));
+        return dist * dist * surfaceAreaPDF() / std::fabs(dot(surfNormal, incoming));
     }
     
     // Return the likelihood of sampling a point on a surface
-    virtual float surfaceAreaPdf() const
+    virtual float surfaceAreaPDF() const
     {
         return 0.0f;
     }
@@ -214,7 +212,7 @@ public:
         return totalBBox;
     }
     
-    virtual float surfaceAreaPdf() const
+    virtual float surfaceAreaPDF() const
     {
         // TODO: this does not account for scaling!
         float areaTotal = 0.0f;
@@ -249,7 +247,7 @@ public:
     // Methods for BVH build
     virtual unsigned int numElements()                   const { return m_shapes.size(); }
     virtual BBox         elementBBox(unsigned int index) const { return m_shapes[index]->bbox(); }
-    virtual float        elementArea(unsigned int index) const { return 1.0f / m_shapes[index]->surfaceAreaPdf(); }
+    virtual float        elementArea(unsigned int index) const { return 1.0f / m_shapes[index]->surfaceAreaPDF(); }
     
     // Methods for BVH intersection
     virtual bool intersect(Intersection& intersection, unsigned int index) { return m_shapes[index]->intersect(intersection); }
@@ -266,12 +264,15 @@ protected:
 class Plane : public Shape
 {
 public:
-    Plane(const Point& position, const Vector& normal, Material *pMaterial, bool bullseye = false)
-        : Shape(),
-          m_position(position),
-          m_normal(normal.normalized()),
-          m_pMaterial(pMaterial),
-          m_bullseye(bullseye)
+    Plane(const Point& position, 
+          const Vector& normal, 
+          Material *pMaterial, 
+          bool bullseye = false): 
+            Shape(),
+            m_position(position),
+            m_normal(normal.normalized()),
+            m_pMaterial(pMaterial),
+            m_bullseye(bullseye)
     {
         
     }
@@ -317,7 +318,7 @@ public:
         // Hack bullseye pattern to get some variation
         if (m_bullseye && std::fmod((localRay.calculate(t) - m_position).length() * 0.25f, 1.0f) > 0.5f)
         {
-            intersection.m_colorModifier *= 0.2f;
+            intersection.m_colorModifier = Color(0.6f, 0.5f, 0.5f);
         }
         
         return true;
@@ -370,15 +371,17 @@ protected:
 };
 
 
-// Sphere (heh, what else?)
+// Sphere
 class Sphere : public Shape
 {
 public:
-    Sphere(const Point& position = Point(), float radius = 1.0f, Material* pMaterial = NULL)
-        : Shape(),
-          m_position(position),
-          m_radius(radius),
-          m_pMaterial(pMaterial)
+    Sphere(const Point& position = Point(), 
+           float radius = 1.0f, 
+           Material* pMaterial = NULL): 
+            Shape(),
+            m_position(position),
+            m_radius(radius),
+            m_pMaterial(pMaterial)
     {
         
     }
@@ -526,7 +529,7 @@ public:
                                float u3,
                                Point& outPosition,
                                Vector& outNormal,
-                               float& outPdf)
+                               float& outPDF)
     {
         // Take care which calculations must be done in local space, and which should be non-local
         Vector localRefPosition = m_transform.toLocalPoint(refTime, refPosition);
@@ -540,7 +543,7 @@ public:
             outNormal = m_transform.fromLocalNormal(refTime, outNormal);
             outPosition = m_transform.fromLocalPoint(refTime, outPosition);
             Vector toSurf = refPosition - outPosition;
-            outPdf = toSurf.length2() * surfaceAreaPdf() / std::fabs(dot(toSurf.normalized(), outNormal));
+            outPDF = toSurf.length2() * surfaceAreaPDF() / std::fabs(dot(toSurf.normalized(), outNormal));
             return true;
         }
         // Outside the surface of the sphere; fit a cone around the sphere to
@@ -554,16 +557,16 @@ public:
         // Make sure the generated direction actually hits the sphere; if not, adjust
         Ray localRay(localRefPosition, cone);
         Ray ray = localRay.transformFromLocal(m_transform);
-        Intersection isect(ray);
-        if (!intersect(isect))
+        Intersection intersection(ray);
+        if (!intersect(intersection))
         {
-            isect.m_t = dot(toCenter, cone);
+            intersection.m_t = dot(toCenter, cone);
         }
-        outPosition = localRay.calculate(isect.m_t);
+        outPosition = localRay.calculate(intersection.m_t);
         outNormal = (outPosition - m_position).normalized();
         outNormal = m_transform.fromLocalNormal(refTime, outNormal);
         outPosition = m_transform.fromLocalPoint(refTime, outPosition);
-        outPdf = uniformConePdf(cosThetaMax);
+        outPDF = uniformConePdf(cosThetaMax);
         return true;
     }
     
@@ -581,14 +584,14 @@ public:
         {
             // Inside or on the surface of the sphere?  Just pick a spot to sample.
             Vector toSurf = refPosition - surfPosition;
-            return toSurf.length2() * surfaceAreaPdf() / std::fabs(dot(toSurf.normalized(), surfNormal));
+            return toSurf.length2() * surfaceAreaPDF() / std::fabs(dot(toSurf.normalized(), surfNormal));
         }
         float sinThetaMax2 = m_radius * m_radius / dist2;
         float cosThetaMax = std::sqrt(std::max(0.0f, 1.0f - sinThetaMax2));
         return uniformConePdf(cosThetaMax);
     }
     
-    virtual float surfaceAreaPdf() const
+    virtual float surfaceAreaPDF() const
     {
         return 3.0f / (4.0f * M_PI * m_radius * m_radius);
     }
@@ -600,4 +603,4 @@ protected:
 };
 
 
-} // namespace KT
+} // namespace kt

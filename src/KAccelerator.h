@@ -7,9 +7,7 @@
 #include "KRay.h"
 
 
-namespace KT
-{
-
+namespace kt{
 
 // Axis-aligned bounding box, with plenty of handy utilities inside it
 struct BBox
@@ -556,4 +554,4 @@ bool BVH<T>::intersect(Intersection& intersection)
 }
 
 
-} // namespace KT
+} // namespace kt

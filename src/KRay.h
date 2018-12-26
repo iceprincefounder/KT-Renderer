@@ -2,9 +2,7 @@
 
 #include "KMathCore.h"
 
-
-namespace KT
-{
+namespace kt{
 
 
 //
@@ -28,34 +26,28 @@ struct Ray
     float m_time;
     
     // Some sane defaults
-    Ray()
-        : m_origin(),
-          m_direction(0.0f, 0.0f, 1.0f),
-          m_tMax(kRayTMax),
-          m_time(0.0f)
-    {
-        
-    }
+    Ray(): 
+        m_origin(),
+        m_direction(0.0f, 0.0f, 1.0f),
+        m_tMax(kRayTMax),
+        m_time(0.0f){ }
     
-    Ray(const Ray& r)
-        : m_origin(r.m_origin),
-          m_direction(r.m_direction),
-          m_tMax(r.m_tMax),
-          m_time(r.m_time)
-    {
-        
-    }
+    Ray(const Ray& r): 
+                  m_origin(r.m_origin),
+                  m_direction(r.m_direction),
+                  m_tMax(r.m_tMax),
+                  m_time(r.m_time){ }
     
-    Ray(const Point& origin, const Vector& direction, float tMax = kRayTMax, float time = 0.0f)
-        : m_origin(origin),
+    Ray(const Point& origin, 
+        const Vector& direction, 
+        float tMax = kRayTMax, 
+        float time = 0.0f):
+          m_origin(origin),
           m_direction(direction),
           m_tMax(tMax),
-          m_time(time)
-    {
-        
-    }
+          m_time(time){ }
     
-    Ray& operator =(const Ray& r)
+    Ray& operator = (const Ray& r)
     {
         m_origin = r.m_origin;
         m_direction = r.m_direction;
@@ -75,7 +67,9 @@ struct Ray
     // The rotation quaternion should be normalized first before being used here!
     Ray transformFromLocal(const Transform& txform) const
     {
-        return Ray(txform.fromLocalPoint(m_time, m_origin), txform.fromLocalVector(m_time, m_direction), m_tMax, m_time);
+        return Ray(txform.fromLocalPoint(m_time, m_origin), 
+                   txform.fromLocalVector(m_time, m_direction), 
+                   m_tMax, m_time);
     }
 };
 
@@ -96,38 +90,29 @@ struct Intersection
     Vector m_normal;
     
     
-    Intersection()
-        : m_ray(),
-          m_t(kRayTMax),
-          m_pShape(NULL),
-          m_pMaterial(NULL),
-          m_colorModifier(1.0f, 1.0f, 1.0f),
-          m_normal()
-    {
-        
-    }
+    Intersection(): 
+              m_ray(),
+              m_t(kRayTMax),
+              m_pShape(NULL),
+              m_pMaterial(NULL),
+              m_colorModifier(1.0f, 1.0f, 1.0f),
+              m_normal(){ }
     
-    Intersection(const Intersection& i)
-        : m_ray(i.m_ray),
-          m_t(i.m_t),
-          m_pShape(i.m_pShape),
-          m_pMaterial(i.m_pMaterial),
-          m_colorModifier(i.m_colorModifier),
-          m_normal(i.m_normal)
-    {
-        
-    }
+    Intersection(const Intersection& i): 
+                              m_ray(i.m_ray),
+                              m_t(i.m_t),
+                              m_pShape(i.m_pShape),
+                              m_pMaterial(i.m_pMaterial),
+                              m_colorModifier(i.m_colorModifier),
+                              m_normal(i.m_normal){ }
     
-    Intersection(const Ray& ray)
-         : m_ray(ray),
-           m_t(ray.m_tMax),
-           m_pShape(NULL),
-           m_pMaterial(NULL),
-           m_colorModifier(1.0f, 1.0f, 1.0f),
-           m_normal()
-    {
-        
-    }
+    Intersection(const Ray& ray): 
+                              m_ray(ray),
+                              m_t(ray.m_tMax),
+                              m_pShape(NULL),
+                              m_pMaterial(NULL),
+                              m_colorModifier(1.0f, 1.0f, 1.0f),
+                              m_normal(){ }
     
     Intersection& operator =(const Intersection& i)
     {
@@ -146,4 +131,4 @@ struct Intersection
 };
 
 
-} // namespace KT
+} // namespace kt

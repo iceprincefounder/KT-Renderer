@@ -2,7 +2,7 @@
 
 #include "KPolymesh.h"
 
-namespace KT{
+namespace kt{
 
 /*
  * Brief overview of OBJ file format.  It is an ASCII format.  It has comments:
@@ -177,4 +177,4 @@ Polymesh* readFromOBJFile(const char* filename)
     return new Polymesh(verts, normals, faces, NULL);
 }
 
-}// end namespace KT
+}// end namespace kt

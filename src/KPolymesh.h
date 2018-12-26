@@ -12,8 +12,7 @@
 #include "KShape.h"
 
 
-namespace KT
-{
+namespace kt{
 
 
 // Polygon Face
@@ -70,7 +69,7 @@ public:
                                float u3,
                                Point& outPosition,
                                Vector& outNormal,
-                               float& outPdf);
+                               float& outPDF);
     
     virtual float pdfSA(const Point &refPosition,
                         const Vector &refNormal,
@@ -78,7 +77,7 @@ public:
                         const Point &surfPosition,
                         const Vector &surfNormal) const;
     
-    virtual float surfaceAreaPdf() const
+    virtual float surfaceAreaPDF() const
     {
         // TODO: this does not account for scaling
         return 1.0f / m_totalArea;
@@ -118,5 +117,5 @@ protected:
 };
 
 
-} // namespace KT
+} // namespace kt
 

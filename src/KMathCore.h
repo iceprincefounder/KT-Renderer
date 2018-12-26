@@ -10,7 +10,7 @@
 #endif
 
 
-namespace KT
+namespace kt
 {
 
 
@@ -181,7 +181,7 @@ struct Vector
     
     float length2() const { return x * x + y * y + z * z; }
     float length()  const { return std::sqrt(length2()); }
-    
+      
     // Returns old length from before normalization (ignore the return value if you don't need it)
     float  normalize()        { float len = length(); if (len > 0) *this /= len; return len; }
     // Return a vector in this same direction, but normalized
@@ -975,4 +975,4 @@ inline Vector transformFromLocalCoordinateSpace(const Vector& v,
                   v.x * xAxis.z + v.y * yAxis.z + v.z * zAxis.z);
 }
 
-} // namespace KT
+} // namespace kt

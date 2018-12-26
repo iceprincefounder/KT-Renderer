@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace KT{
+namespace kt{
 
 class Log
 {
@@ -18,7 +18,7 @@ public:
     virtual void logging(const char* message)
     {
         if (m_rendererInfo.empty())
-            m_rendererInfo = "KT Renderer beta";
+            m_rendererInfo = "kt Renderer beta";
         string currentTime = getCurrentDateTime();
         printf("[%s]%s\n", currentTime.c_str(), message);
         m_currentTime = currentTime;
@@ -49,4 +49,4 @@ private:
     string m_rendererInfo;
 };
 
-} // end namespace KT
+} // end namespace kt

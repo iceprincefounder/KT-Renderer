@@ -7,10 +7,9 @@
 // #include <QThread>
 
 
-using namespace KT;
+using namespace kt;
 
-namespace KT
-{
+namespace kt{
 
 
 // Construct a perspective camera, precomputing a few things to ray trace faster
@@ -78,4 +77,4 @@ Ray PerspectiveCamera::makeRay(float xScreen, float yScreen, float lensU, float 
     return ray;
 }
 
-} // namespace KT
+} // namespace kt

@@ -7,8 +7,7 @@
 #include "KLight.h"
 
 
-namespace KT
-{
+namespace kt{
 
 //
 // Cameras
@@ -84,4 +83,4 @@ protected:
     Color *m_pixels;
 };
 
-} // namespace KT
+} // namespace kt

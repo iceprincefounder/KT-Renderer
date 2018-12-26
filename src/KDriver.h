@@ -5,7 +5,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace KT{
+namespace kt{
 
 void driverImage(Image *image)
 {
@@ -51,4 +51,4 @@ void png_driver(Image *image, char *outfile)
 }
 
 
-} // ending namespace KT
+} // ending namespace kt

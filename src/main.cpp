@@ -6,7 +6,7 @@
 #include "KLog.h"
 #include "KGeoReader.h"
 
-using namespace KT;
+using namespace kt;
 using namespace std;
 
 
@@ -15,15 +15,16 @@ using namespace std;
 //
 static void usage(const char * const program) {
     fprintf(stderr, "usage: %s <command args ...>\n", "ktRender");
-    fprintf(stderr, "\t\t -s   scene sources \n");
-    fprintf(stderr, "\t\t -t   thread number \n");
-    fprintf(stderr, "\t\t -o   output file(.ppm) \n");
-    fprintf(stderr, "\t\t -wd   width of output file  (default 512) \n");
-    fprintf(stderr, "\t\t -ht   height of output file (default 512) \n");
-    fprintf(stderr, "\t\t -rd  ray depth    (default 2) \n");
-    fprintf(stderr, "\t\t -ps  pixle sample (default 3) \n");
-    fprintf(stderr, "\t\t -ls  light sample (default 1) \n");
-    fprintf(stderr, "\t KT-Renderer v0.20 by [Kevin Tsui] \n");
+    fprintf(stderr, "\t\t -s     scene sources \n");
+    fprintf(stderr, "\t\t -t     thread number \n");
+    fprintf(stderr, "\t\t -o     output file(.ppm) \n");
+    fprintf(stderr, "\t\t -wd    width of output file  (default 512) \n");
+    fprintf(stderr, "\t\t -ht    height of output file (default 512) \n");
+    fprintf(stderr, "\t\t -rd    ray depth    (default 2) \n");
+    fprintf(stderr, "\t\t -ps    pixle sample (default 3) \n");
+    fprintf(stderr, "\t\t -ls    light sample (default 1) \n");
+    fprintf(stderr, "\t\t --help print help information! \n");
+    fprintf(stderr, "\t kt-Renderer v0.20 by [Kevin Tsui] \n");
     exit(1);
 }
 
@@ -81,10 +82,9 @@ int main(int argc, char *argv[]){
     }
 
     Log renderLog;
-    // printf("[%s] %s\n", "KT-Renderer v0.10 by [Kevin Tsui]");
+    // printf("[%s] %s\n", "kt-Renderer v0.10 by [Kevin Tsui]");
     renderLog.logging("-- Render Start ----");
     
-
     renderLog.logging("Genarating Scenes ...");
 
     renderLog.logging("\t\tcreate materials");
@@ -104,26 +104,38 @@ int main(int argc, char *argv[]){
     
     
     Sphere sphere1(Point(), 1.0f, &redLambert);
-    sphere1.transform().setTranslation(0.0f, Vector(2.0f, -1.0f, 1.0f));
-    sphere1.transform().setTranslation(1.0f, Vector(3.0f, -1.0f, 1.0f));
-    // masterSet.addShape(&sphere1);
+    sphere1.transform().setTranslation(0.0f, Vector(2.0f, -1.0f, -3.0f));
+    sphere1.transform().setTranslation(1.0f, Vector(3.0f, -1.0f, -3.0f));
+    masterSet.addShape(&sphere1);
     
     Sphere sphere2(Point(), 2.0f, &greenLambert);
     sphere2.transform().translate(0.0f, Vector(-3.0f, 0.0f, -2.0f));
-    // masterSet.addShape(&sphere2);
+    masterSet.addShape(&sphere2);
     
     Sphere sphere3(Point(), 0.5f, &blueLambert);
     sphere3.transform().translate(0.0f, Vector(1.5f, -1.5f, 2.5f));
-    // masterSet.addShape(&sphere3);
-    
-    if (sources)
+    masterSet.addShape(&sphere3);
+
+    if (sources !=NULL)
     {
-        Polymesh* atangShape = readFromOBJFile(sources);
-        atangShape->setMaterial(&basicLambert);
-        atangShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
-        atangShape->transform().scale(0.0f, Vector(0.3f, 0.3f, 0.3f));
-        masterSet.addShape(atangShape);        
+        Polymesh* sourcesShape = readFromOBJFile(sources);
+        sourcesShape->setMaterial(&basicLambert);
+        sourcesShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
+        sourcesShape->transform().scale(0.0f, Vector(0.3f, 0.3f, 0.3f));
+        masterSet.addShape(sourcesShape);
     }
+    
+    Polymesh* atangShape = readFromOBJFile("/home/xukai/Desktop/atang.obj");
+    atangShape->setMaterial(&basicLambert);
+    atangShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
+    atangShape->transform().scale(0.0f, Vector(0.3f, 0.3f, 0.3f));
+    // masterSet.addShape(atangShape);
+
+    Polymesh* logoShape = readFromOBJFile("/home/xukai/Desktop/logo.obj");
+    logoShape->setMaterial(&basicLambert);
+    logoShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
+    logoShape->transform().scale(0.0f, Vector(0.3f, 0.3f, 0.3f));
+    masterSet.addShape(logoShape);
 
     renderLog.logging("\t\tcreate lights");
     // Add an area light
@@ -131,14 +143,23 @@ int main(int argc, char *argv[]){
                              Vector(5.0f, 0.0f, 0.0f),
                              Vector(0.0f, 0.0f, 5.0f),
                              Color(1.0f, 1.0f, 1.0f),
-                             13.0f);
+                             10.0f);
     rectangleLight.transform().setTranslation(0.0f, Vector(-1.5f, 8.0f, -1.5f));
-    masterSet.addShape(&rectangleLight);
+    // masterSet.addShape(&rectangleLight);
 
-    renderLog.logging("\t\tcreate cameras");    
+    // Add an area light
+    DistantLight directionalLight(  Point(),
+                                    Vector(0.2f, -0.2f, 1.0f),
+                                    Color(1.0f, 1.0f, 1.0f),
+                                    3.0f);
+    directionalLight.transform().setTranslation(0.0f, Vector(-1.5f, 8.0f, -1.5f));
+    masterSet.addShape(&directionalLight);
+
+
+    renderLog.logging("\t\tcreate camera");
     // Create the camera
-    float FOV = 45;
-    Point position = Point(-4.0f, 5.0f, 15.0f);
+    float FOV = 30;
+    Point position = Point(-5.0f, 5.0f, 15.0f);
     Point target = Point(0.0f, 0.0f, 0.0f);
     Point targetUpDirection = Point(0.0f, 1.0f, 0.0f);
     float focalDistance = 12.0;
@@ -172,7 +193,7 @@ int main(int argc, char *argv[]){
 
     renderLog.logging("Writing Output Image...");    
     // output images
-    ppm_driver(pImage,outfile);
+    ppm_driver(pImage, outfile);
     
     // Clean up the scene and render
     delete pImage;

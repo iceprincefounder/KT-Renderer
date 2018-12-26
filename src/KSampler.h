@@ -6,8 +6,7 @@
 #include "KMathCore.h"
 
 
-namespace KT
-{
+namespace kt{
 
 
 //
@@ -535,4 +534,4 @@ inline void uniformToBarycentricTriangle(float u1, float u2, float& btu, float& 
 }
 
 
-} // namespace KT
+} // namespace kt

@@ -5,7 +5,7 @@
 #include "KPolymesh.h"
 
 
-namespace KT
+namespace kt
 {
 
 bool Polymesh::intersect(Intersection& intersection)
@@ -85,7 +85,7 @@ bool Polymesh::sampleSurface(const Point& refPosition,
                                float u3,
                                Point& outPosition,
                                Vector& outNormal,
-                               float& outPdf)
+                               float& outPDF)
 {
     // Select a face based on a random number (u3), proportional to face
     // surface area; a face with double the surface area of another is twice
@@ -124,7 +124,7 @@ bool Polymesh::sampleSurface(const Point& refPosition,
             outNormal = cross(p1 - p0, p2 - p0);
             outNormal = m_transform.fromLocalNormal(refTime, outNormal).normalized();
             Vector toSurf = refPosition - outPosition;
-            outPdf = toSurf.length2() * surfaceAreaPdf() / std::fabs(dot(toSurf.normalized(), outNormal));
+            outPDF = toSurf.length2() * surfaceAreaPDF() / std::fabs(dot(toSurf.normalized(), outNormal));
             return true;
         }
     }
@@ -139,7 +139,7 @@ float Polymesh::pdfSA(const Point &refPosition,
 {
     // Likelihood of having selected this position (w.r.t. solid angle)
     Vector toSurf = refPosition - surfPosition;
-    return toSurf.length2() * surfaceAreaPdf() / std::fabs(dot(toSurf.normalized(), surfNormal));
+    return toSurf.length2() * surfaceAreaPDF() / std::fabs(dot(toSurf.normalized(), surfNormal));
 }
 
 BBox Polymesh::elementBBox(unsigned int index) const
@@ -298,4 +298,4 @@ bool Polymesh::doesIntersectTri(unsigned int faceIndex, unsigned int tri, const 
     return true;
 }
 
-} // namespace KT
+} // namespace kt
