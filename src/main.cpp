@@ -35,8 +35,8 @@ int main(int argc, char *argv[]){
     const char *height = "512";
     const char *outfile = "out/output.ppm";
     const char *rayDepth = "2";
-    const char *pixleSample = "3";
-    const char *lightSample = "1";
+    const char *pixleSample = "5";
+    const char *lightSample = "3";
 
     // chasing arguments
     if (argc == 1) usage(argv[0]);
@@ -90,76 +90,80 @@ int main(int argc, char *argv[]){
     renderLog.logging("\t\tcreate materials");
     // The Materials
     DiffuseMaterial basicLambert(Color(0.7f, 0.7f, 0.7f));
+    DiffuseMaterial logoLambert(Color(0.9f, 0.5f, 0.0f));
     DiffuseMaterial redLambert(Color(0.7f, 0.1f, 0.1f));
     DiffuseMaterial greenLambert(Color(0.1f, 0.7f, 0.1f));
     DiffuseMaterial blueLambert(Color(0.1f, 0.1f, 0.7f));
-    
+    GlossyMaterial yellowGlossy(Color(0.9f, 0.5f, 0.1f), 0.1f);
+
     renderLog.logging("\t\tcreate shapes");
     // The 'scene'
     ShapeSet masterSet;
     
-    Plane plane(Point(), Vector(0.0f, 1.0f, 0.0f), &basicLambert, false);
+    Plane plane(Point(), Vector(0.0f, 1.0f, 0.0f), &basicLambert, true);
     plane.transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
     masterSet.addShape(&plane);
     
     
     Sphere sphere1(Point(), 1.0f, &redLambert);
-    sphere1.transform().setTranslation(0.0f, Vector(2.0f, -1.0f, -3.0f));
-    sphere1.transform().setTranslation(1.0f, Vector(3.0f, -1.0f, -3.0f));
-    masterSet.addShape(&sphere1);
+    sphere1.transform().setTranslation(0.0f, Vector(2.0f, -1.0f, 0.0f));
+    sphere1.transform().setTranslation(1.0f, Vector(3.0f, -1.0f, 0.0f));
     
     Sphere sphere2(Point(), 2.0f, &greenLambert);
     sphere2.transform().translate(0.0f, Vector(-3.0f, 0.0f, -2.0f));
-    masterSet.addShape(&sphere2);
     
     Sphere sphere3(Point(), 0.5f, &blueLambert);
     sphere3.transform().translate(0.0f, Vector(1.5f, -1.5f, 2.5f));
-    masterSet.addShape(&sphere3);
 
     if (sources !=NULL)
     {
         Polymesh* sourcesShape = readFromOBJFile(sources);
         sourcesShape->setMaterial(&basicLambert);
         sourcesShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
-        sourcesShape->transform().scale(0.0f, Vector(0.3f, 0.3f, 0.3f));
+        sourcesShape->transform().scale(0.0f, Vector(0.5f, 0.5f, 0.5f));
+        // sourcesShape->transform().rotate(0.0f, Quaternion(Vector(0.0f, 1.0f, 0.0f).normalized(), M_PI * 0.5f));
         masterSet.addShape(sourcesShape);
     }
-    
-    Polymesh* atangShape = readFromOBJFile("/home/xukai/Desktop/atang.obj");
-    atangShape->setMaterial(&basicLambert);
-    atangShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
-    atangShape->transform().scale(0.0f, Vector(0.3f, 0.3f, 0.3f));
-    // masterSet.addShape(atangShape);
+    else
+    {
+        // masterSet.addShape(&sphere1);
+        // masterSet.addShape(&sphere2);
+        // masterSet.addShape(&sphere3);
+    }
 
-    Polymesh* logoShape = readFromOBJFile("/home/xukai/Desktop/logo.obj");
-    logoShape->setMaterial(&basicLambert);
-    logoShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
-    logoShape->transform().scale(0.0f, Vector(0.3f, 0.3f, 0.3f));
-    masterSet.addShape(logoShape);
+    Polymesh* atangShape = readFromOBJFile("/home/xukai/Desktop/atang.obj");
+    atangShape->setMaterial(&yellowGlossy);
+    atangShape->transform().translate(0.0f, Vector(0.0f, -2.0f, 0.0f));
+    atangShape->transform().scale(0.0f, Vector(0.5f, 0.5f, 0.5f));
+    // sourcesShape->transform().rotate(0.0f, Quaternion(Vector(0.0f, 1.0f, 0.0f).normalized(), M_PI * 0.5f));
+    masterSet.addShape(atangShape);
+
 
     renderLog.logging("\t\tcreate lights");
-    // Add an area light
-    RectangleLight rectangleLight(Point(),
+    // Add an top light
+    RectangleLight rectangleTopLight(Point(),
                              Vector(5.0f, 0.0f, 0.0f),
                              Vector(0.0f, 0.0f, 5.0f),
                              Color(1.0f, 1.0f, 1.0f),
                              10.0f);
-    rectangleLight.transform().setTranslation(0.0f, Vector(-1.5f, 8.0f, -1.5f));
-    // masterSet.addShape(&rectangleLight);
+    rectangleTopLight.transform().setTranslation(0.0f, Vector(0.0f, 10.0f, 0.0f));
+    masterSet.addShape(&rectangleTopLight);
 
-    // Add an area light
-    DistantLight directionalLight(  Point(),
-                                    Vector(0.2f, -0.2f, 1.0f),
-                                    Color(1.0f, 1.0f, 1.0f),
-                                    3.0f);
-    directionalLight.transform().setTranslation(0.0f, Vector(-1.5f, 8.0f, -1.5f));
-    masterSet.addShape(&directionalLight);
 
+    // Add an fill light
+    RectangleLight rectangleFillLight(Point(),
+                             Vector(0.0f, 5.0f, 0.0f),
+                             Vector(0.0f, 0.0f, 5.0f),
+                             Color(1.0f, 1.0f, 1.0f),
+                             3.0f);
+    rectangleFillLight.transform().setTranslation(0.0f, Vector(-10.0f, 0.0f, 0.0f));
+    rectangleFillLight.transform().setRotation(0.0f, Quaternion(Vector(0.0f, 0.0f, 1.0f).normalized(), M_PI * 1.0f));
+    masterSet.addShape(&rectangleFillLight);
 
     renderLog.logging("\t\tcreate camera");
     // Create the camera
-    float FOV = 30;
-    Point position = Point(-5.0f, 5.0f, 15.0f);
+    float FOV = 45;
+    Point position = Point(-4.0f, 5.0f, 15.0f);
     Point target = Point(0.0f, 0.0f, 0.0f);
     Point targetUpDirection = Point(0.0f, 1.0f, 0.0f);
     float focalDistance = 12.0;
