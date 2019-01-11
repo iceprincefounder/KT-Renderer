@@ -1,5 +1,4 @@
-
-# KT-Renderer Core
+# KT-Renderer Core [![Build Status](https://travis-ci.org/iceprincefounder/KT-Renderer.svg?branch=master)](https://travis-ci.org/iceprincefounder/KT-Renderer)
 ![logo](https://user-images.githubusercontent.com/16664056/50462709-0d1fbd00-09c2-11e9-9fca-7b21d2fab006.png)
 A full featured **Physically Based Path-tracing Renderer**
 
