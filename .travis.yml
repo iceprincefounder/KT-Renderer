@@ -1,10 +1,13 @@
-# apt-get if using the trusty build environment.
 sudo: required
 dist: trusty
 
 language: cpp
 
 compiler: gcc
+
+branches:
+  only:
+    - master
 
 addons:
   apt:
