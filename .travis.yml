@@ -17,4 +17,5 @@ addons:
 #install:
 
 script:
-  -make -j4
+  - echo 'Building with -j4'
+  - make -j4
